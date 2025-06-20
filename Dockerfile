@@ -22,6 +22,7 @@ RUN apk update && apk add --no-cache \
 # Copy source code
 COPY ./mikhmon /var/www/localhost/htdocs
 COPY supervisord.conf /etc/supervisord.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Fix permissions
 RUN chown -R nginx:nginx /var/www/localhost/htdocs
