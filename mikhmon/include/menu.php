@@ -1,5 +1,20 @@
 <?php
-
+/*
+ *  Copyright (C) 2018 Laksamadi Guko.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 session_start();
 // hide all error
 error_reporting(0);
@@ -256,7 +271,7 @@ include('./info.php');
         if ($sesname == "" || $sesname== "mikhmon") {
         } else {
         if($sesname == $session){
-          echo '<option value="' . $sesname. '">'.$sesname. ' ♦</option>';
+          echo '<option value="' . $sesname. '">'.$sesname. ' &#x2666;</option>';
         }else{
           echo '<option value="' . $sesname. '">'.$sesname. '</option>';
         }
@@ -282,17 +297,17 @@ include('./info.php');
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $umenu; ?>">
-    <a href="./?hotspot=users&profile=all&session=<?= $session; ?>" class="<?= $susersl; ?>">    <i class="fa fa-list "></i> <?= $_user_list ?> </a>
-    <a href="./?hotspot-user=add&session=<?= $session; ?>" class="<?= $sadduser; ?>">    <i class="fa fa-user-plus "></i> <?= $_add_user ?> </a>
-    <a href="./?hotspot-user=generate&session=<?= $session; ?>" class="<?= $sgenuser; ?>">    <i class="fa fa-user-plus"></i> <?= $_generate ?> </a>        
+    <a href="./?hotspot=users&profile=all&session=<?= $session; ?>" class="<?= $susersl; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_user_list ?> </a>
+    <a href="./?hotspot-user=add&session=<?= $session; ?>" class="<?= $sadduser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus "></i> <?= $_add_user ?> </a>
+    <a href="./?hotspot-user=generate&session=<?= $session; ?>" class="<?= $sgenuser; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus"></i> <?= $_generate ?> </a>        
   </div>
   <!--profile-->
   <div class="dropdown-btn <?= $suserprof; ?>"><i class=" fa fa-pie-chart"></i>  <?= $_user_profile ?>
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $upmenu; ?>">
-    <a href="./?hotspot=user-profiles&session=<?= $session; ?>" class=" <?= $suserprofiles; ?>">    <i class="fa fa-list "></i> <?= $_user_profile_list ?> </a>
-    <a href="./?user-profile=add&session=<?= $session; ?>" class=" <?= $sadduserprof; ?>">    <i class="fa fa-plus-square "></i> <?= $_add_user_profile ?> </a>
+    <a href="./?hotspot=user-profiles&session=<?= $session; ?>" class=" <?= $suserprofiles; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_user_profile_list ?> </a>
+    <a href="./?user-profile=add&session=<?= $session; ?>" class=" <?= $sadduserprof; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-plus-square "></i> <?= $_add_user_profile ?> </a>
 
   </div>
   <!--active-->
@@ -304,22 +319,17 @@ include('./info.php');
   <!--cookies-->
    <a href="./?hotspot=cookies&session=<?= $session; ?>" class="menu <?= $scookies; ?>"><i class=" fa fa-hourglass"></i> <?= $_hotspot_cookies ?></a>
   </div>
-  
-  <!-- ========================================================== -->
-  <!-- ==================== AWAL MENU PPP BARU ==================== -->
-  <!-- ========================================================== -->
-  <div class="dropdown-btn <?= $mppp; ?>"><i class="fa fa-sitemap"></i> PPP
+  <!--secrets--> 
+  <div class="dropdown-btn <?= $ssecrets; ?>"><i class="fa fa-users"></i> PPPOE Server
     <i class="fa fa-caret-down"></i>
   </div>
   <div class="dropdown-container <?= $pppmenu; ?>">
-    <a href="./?ppp=secrets&session=<?= $session; ?>" class="menu <?= $ssecrets; ?>"><i class="fa fa-users"></i> <?= $_ppp_secrets ?></a>
-    <a href="./?ppp=active&session=<?= $session; ?>" class="menu <?= $spactive; ?>"><i class="fa fa-plug"></i> <?= $_ppp_active ?></a>
-    <a href="./?ppp=profiles&session=<?= $session; ?>" class="menu <?= $spprofile; ?>"><i class="fa fa-list-alt"></i> <?= $_ppp_profiles ?></a>
+    <a href="./?ppp=secrets&profile=all&session=<?= $session; ?>" class="<?= $ssecrets; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_ppp_secrets ?> </a>
+	<a href="./?ppp=addsecret&session=<?= $session; ?>" class="<?= $spactive; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus "></i> Add Secrets</a>
+	<a href="./?ppp=active&session=<?= $session; ?>" class="<?= $spactive; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-wifi"></i> <?= $_ppp_active ?></a>
+	<a href="./?ppp=profiles&session=<?= $session; ?>" class="<?= $spprofile; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-list "></i> <?= $_ppp_profiles ?> </a>
+	<a href="./?ppp=add-profile&session=<?= $session; ?>"> &nbsp;&nbsp;&nbsp;<i class="fa fa-user-plus "></i> Add PPP Profile</a>
   </div>
-  <!-- ========================================================== -->
-  <!-- ==================== AKHIR MENU PPP BARU =================== -->
-  <!-- ========================================================== -->
-  
   <!--quick print-->
   <a href="./?hotspot=quick-print&session=<?= $session; ?>" class="menu <?= $squick; ?>"> <i class="fa fa-print"></i> <?= $_quick_print ?> </a>
   <!--vouchers-->
@@ -334,7 +344,7 @@ include('./info.php');
   </div>
   <!--system-->
   <div class="dropdown-btn <?= $sysmenu; ?>"><i class=" fa fa-gear"></i> <?= $_system ?>
-    <i class="fa fa-caret-down"></i>  
+    <i class="fa fa-caret-down"></i> &nbsp;
   </div>
   <div class="dropdown-container <?= $schmenu; ?>">
     <a href="./?system=scheduler&session=<?= $session; ?>" class="<?= $ssch; ?>"> <i class="fa fa-clock-o "></i> <?= $_system_scheduler ?> </a>
@@ -349,7 +359,7 @@ include('./info.php');
   <a href="./?report=selling&idbl=<?= strtolower(date("M")) . date("Y"); ?>&session=<?= $session; ?>" class="menu <?= $sselling; ?>"><i class="nav-icon fa fa-money"></i> <?= $_report ?></a>
   <!--settings-->
   <div class="dropdown-btn <?= $ssett; ?>"><i class=" fa fa-gear"></i> <?= $_settings ?> 
-    <i class="fa fa-caret-down"></i>  
+    <i class="fa fa-caret-down"></i> &nbsp;
   </div>
   <div class="dropdown-container <?= $settmenu; ?>">
   <a href="./admin.php?id=settings&session=<?= $session; ?>" class="menu "> <i class="fa fa-gear "></i> <?= $_session_settings ?> </a>
@@ -387,3 +397,4 @@ echo '<div class="main-container">';
   echo '<div class="main-container" style="display:none">';
 }
 ?>
+

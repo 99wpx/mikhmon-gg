@@ -1,5 +1,20 @@
 <?php
-
+/*
+ *  Copyright (C) 2018 Laksamadi Guko.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 session_start();
 // hide all error
 error_reporting(0);
@@ -25,10 +40,7 @@ if (!isset($_SESSION["mikhmon"])) {
   $_SESSION["connect"] = "";
 
 // time zone
-  // Perbaikan: Cek dulu apakah session timezone ada
-  if(isset($_SESSION['timezone'])){
-    date_default_timezone_set($_SESSION['timezone']);
-  }
+  date_default_timezone_set($_SESSION['timezone']);
 
 // lang
   include('./include/lang.php');
@@ -44,7 +56,7 @@ if (!isset($_SESSION["mikhmon"])) {
 // theme  
   include('./include/theme.php');
   include('./settings/settheme.php');
-  if (!isset($_SESSION['theme']) || $_SESSION['theme'] == "") {
+  if ($_SESSION['theme'] == "") {
     $theme = $theme;
     $themecolor = $themecolor;
   } else {
@@ -53,7 +65,7 @@ if (!isset($_SESSION["mikhmon"])) {
   }
 
 // routeros api
-  include_once('./lib/routeros_api.class.php'); // <-- DIPASTIKAN BENAR
+  include_once('./lib/routeros_api.class.php');
   include_once('./lib/formatbytesbites.php');
   $API = new RouterosAPI();
   $API->debug = false;
@@ -106,7 +118,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
 
   $pagehotspot = array('users','hosts','ipbinding','cookies','log','dhcp-leases');
-  $pageppp = array('secrets','profiles','active', 'exportsecrets');
+  $pageppp = array('secrets','profiles','active',);
   $pagereport = array('userlog','selling');
 
   include_once('./include/headhtml.php');
@@ -143,23 +155,6 @@ if (!isset($_SESSION["mikhmon"])) {
     $_SESSION['ubn'] = "";
 
   }
-
-// ===================================================================
-// ==================== PERUBAHAN #1 DIMULAI DI SINI =================
-// ===================================================================
-// Menangani semua permintaan yang menggunakan parameter 'ppp'
-  elseif (isset($_GET['ppp'])) {
-      $ppp_page_file = './ppp/' . $_GET['ppp'] . '.php';
-      if (file_exists($ppp_page_file)) {
-          include_once($ppp_page_file);
-      } else {
-          // Jika file tidak ada, kembali ke dashboard agar tidak error
-          include_once('./dashboard/home.php');
-      }
-  }
-// ===================================================================
-// ===================== PERUBAHAN #1 SELESAI ========================
-// ===================================================================
 
 // hotspot log
   elseif ($hotspot == "log") {
@@ -264,36 +259,42 @@ elseif ($hotspot == "list-quick-print") {
 // remove hotspot user
   elseif ($removehotspotuser != "" || $removehotspotusers != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removehotspotuser.php');
   }
 
 // remove hotspot user by comment
   elseif ($removehotspotuserbycomment != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removehotspotuserbycomment.php');
   }
 
 // remove expired hotspot user
 elseif ($removeexpiredhotspotuser != "") {
   echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
   include_once('./process/removeexpiredhotspotuser.php');
 }  
 
 // reset hotspot user
   elseif ($resethotspotuser != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/resethotspotuser.php');
   }
 
 // enable hotspot user
   elseif ($enablehotspotuser != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/enablehotspotuser.php');
   }
 
 // disable hotspot user
   elseif ($disablehotspotuser != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/disablehotspotuser.php');
   }
 
@@ -318,6 +319,7 @@ elseif ($removeexpiredhotspotuser != "") {
 // remove user profile
   elseif ($removeuserprofile != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removeuserprofile.php');
   }
 
@@ -367,6 +369,7 @@ elseif ($removeexpiredhotspotuser != "") {
 // remove hotspot Cookies
   elseif ($removecookie != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removecookie.php');
   }
 
@@ -378,6 +381,7 @@ elseif ($removeexpiredhotspotuser != "") {
 // remove enable disable ipbinding
   elseif ($removeipbinding != "" || $enableipbinding != "" || $disableipbinding != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/pipbinding.php');
   }
 
@@ -385,12 +389,14 @@ elseif ($removeexpiredhotspotuser != "") {
 // remove user active
   elseif ($removeuseractive != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removeuseractive.php');
   }
 
 // remove host
   elseif ($removehost != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removehost.php');
   }
 
@@ -398,6 +404,7 @@ elseif ($removeexpiredhotspotuser != "") {
 // makebinding
   elseif ($macbinding != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/makebinding.php');
   }
 
@@ -419,7 +426,64 @@ elseif ($report == "export") {
 // selling
   elseif ($removereport != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/removereport.php');
+  }
+
+// ppp secret
+  elseif ($ppp == "secrets") {
+    include_once('./ppp/pppsecrets.php');
+  }
+
+// ppp addsecret
+  elseif ($ppp == "addsecret") {
+    include_once('./ppp/addsecret.php');
+  }
+
+// ppp secretbyname
+  elseif ($secretbyname != "") {
+    include_once('./ppp/secretbyname.php');
+  }
+
+// remove enable disable secret
+  elseif ($removesecr != "" || $enablesecr != "" || $disablesecr != "") {
+    echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
+    include_once('./process/psecret.php');
+  }
+
+
+// ppp profile
+  elseif ($ppp == "profiles") {
+    include_once('./ppp/pppprofile.php');
+  }
+
+// add ppp profile
+  elseif ($ppp == "add-profile") {
+    include_once('./ppp/addpppprofile.php');
+  }
+
+// add ppp profile
+elseif ($ppp == "edit-profile") {
+  include_once('./ppp/profilebyname.php');
+}
+// remove enable disable profile
+  elseif ($removepprofile != "") {
+    echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
+    include_once('./process/removepprofile.php');
+  }
+
+// ppp active connection
+  elseif ($ppp == "active") {
+    include_once('./ppp/pppactive.php');
+  }
+
+// remove ppp active connection
+  elseif ($removepactive != "") {
+    echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
+    include_once('./process/removepactive.php');
   }
 
 // sys scheduler
@@ -429,13 +493,10 @@ elseif ($report == "export") {
 // remove enable disable scheduler
   elseif ($removesch != "" || $enablesch != "" || $disablesch != "") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
     include_once('./process/pscheduler.php');
   }
 
-// Logika fallback jika tidak ada yang cocok
-  else {
-      include_once('./dashboard/home.php');
-  }
   ?>
 
 </div>
@@ -449,34 +510,27 @@ elseif ($report == "export") {
 <?php
 if ($hotspot == "dashboard" || substr(end(explode("/", $url)), 0, 8) == "?session") {
   echo '<script>
-    $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3");
-    // ==================================================================
-    // ==================== PERUBAHAN #2 DIMULAI DI SINI ================
-    // ==================================================================
-    // Menambahkan auto-refresh untuk panel PPP di dashboard
-    $("#r_ppp").load("./dashboard/aload.php?session=' . $session . '&load=ppp #r_ppp");
-    var interval1 = "' . (isset($areload) ? ($areload * 1000) : 30000) . '";
+    $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3");  
+    var interval1 = "' . ($areload * 1000) . '";
     var dashboard = setInterval(function() {
       
     $("#r_1").load("./dashboard/aload.php?session=' . $session . '&load=sysresource #r_1"); 
     $("#r_2").load("./dashboard/aload.php?session=' . $session . '&load=hotspot #r_2"); 
     $("#r_3").load("./dashboard/aload.php?session=' . $session . '&load=logs #r_3"); 
-    // Menambahkan auto-refresh untuk panel PPP di dalam interval
-    $("#r_ppp").load("./dashboard/aload.php?session=' . $session . '&load=ppp #r_ppp");
     
   }, interval1);
 
 ';
-if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
-  if(!isset($_SESSION[$session.'idhr']) || $_SESSION[$session.'sdate'] != $_SESSION[$session.'idhr']){
+if ($livereport == "enable" || $livereport == "") {
+  if($_SESSION[$session.'sdate'] != $_SESSION[$session.'idhr']){
     $_SESSION[$session.'totalHr'] = "0";
     echo '$("#r_4").load("./report/livereport.php?session=' . $session . ' #r_4");';
-    }else if (isset($_SESSION[$session.'idhr']) && $_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']){  
+    }else if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']){  
     }else{
       echo '$("#r_4").load("./report/livereport.php?session=' . $session . ' #r_4");';
     }
   echo  '
-    var interval2 = 65432;
+    var interval2 = "65432";
     var livereport = setInterval(function() {
     $("#r_4").load("./report/livereport.php?session=' . $session . ' #r_4"); 
   }, interval2);
@@ -485,7 +539,7 @@ if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
   function cancelPage(){
     window.stop();
     clearInterval(dashboard);';
-    if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
+    if ($livereport == "enable" || $livereport == "") {
     echo '
     clearInterval(livereport);';
     }
@@ -493,7 +547,7 @@ if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
     }
 </script>';
 
-} elseif (isset($hotspot) && $hotspot == "active" && $serveractive != "") {
+} elseif ($hotspot == "active" && $serveractive != "") {
   echo '<script>
   $(document).ready(function(){
     var interval = "' . ($areload * 1000) . '";
@@ -501,7 +555,7 @@ if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
     $("#reloadHotspotActive").load("./hotspot/hotspotactive.php?server=' . $serveractive . '&session=' . $session . '"); }, interval);})
 </script>
 ';
-} elseif (isset($hotspot) && $hotspot == "active" && $serveractive == "") {
+} elseif ($hotspot == "active" && $serveractive == "") {
   echo '<script>
   $(document).ready(function(){
     var interval = "' . ($areload * 1000) . '";
@@ -509,27 +563,29 @@ if (isset($livereport) && ($livereport == "enable" || $livereport == "")) {
     $("#reloadHotspotActive").load("./hotspot/hotspotactive.php?session=' . $session . '"); }, interval);})
 </script>
 ';
-} elseif (isset($userprofile) && ($userprofile == "add" || substr($userprofile, 0, 1) == "*" || $userprofile != "")) {
+} elseif ($userprofile == "add" || substr($userprofile, 0, 1) == "*" || $userprofile != "") {
   echo "<script>
   //enable disable input on ready
 $(document).ready(function(){
-    if(document.getElementById('expmode')){
-        var exp = document.getElementById('expmode').value;
-        var val = document.getElementById('validity').style;
-        var vali = document.getElementById('validi');
-        if (exp === 'rem' || exp === 'remc' || exp === 'ntf' || exp === 'ntfc') {
-          val.display= 'table-row';
-          vali.type = 'text';
-          $('#validi').focus();
-        } else {
-          val.display = 'none';
-          vali.type = 'hidden';
-        }
+    var exp = document.getElementById('expmode').value;
+    var val = document.getElementById('validity').style;
+    var vali = document.getElementById('validi');
+    if (exp === 'rem' || exp === 'remc') {
+      val.display= 'table-row';
+      vali.type = 'text';
+      $('#validi').focus();
+    } else if (exp === 'ntf' || exp === 'ntfc') {
+      val.display = 'table-row';
+      vali.type = 'text';
+      $('#validi').focus();
+    } else {
+      val.display = 'none';
+      vali.type = 'hidden';
     }
 });
 </script>";
 
-} elseif ((isset($hotspot) && in_array($hotspot, $pagehotspot)) || (isset($ppp) && in_array($ppp, $pageppp)) || (isset($report) && in_array($report, $pagereport)) || (isset($sys) && $sys == "scheduler")) {
+} elseif (in_array($hotspot, $pagehotspot) || in_array($ppp, $pageppp) || in_array($report, $pagereport) || $sys == "scheduler") {
 echo '
 <script>
 $(document).ready(function(){
@@ -549,3 +605,4 @@ $(document).ready(function(){
 ?>
 </body>
 </html>
+
