@@ -1,107 +1,187 @@
 <?php
+/*
+ *  Copyright (C) 2018 Laksamadi Guko.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 session_start();
+// hide all error
 error_reporting(0);
-
 if (!isset($_SESSION["mikhmon"])) {
-    header("Location:../admin.php?id=login");
-    exit;
-}
+  header("Location:../admin.php?id=login");
+} else {
 
-require_once('../lib/routeros_api.class.php'); // jika belum include
 
-// Ambil data waktu MikroTik
-$getClock = $API->comm("/system/clock/print")[0];
-date_default_timezone_set($getClock['time-zone-name']);
-$_SESSION['timezone'] = $getClock['time-zone-name'];
+// get MikroTik system clock
+  $getclock = $API->comm("/system/clock/print");
+  $clock = $getclock[0];
+  $timezone = $getclock[0]['time-zone-name'];
+  $_SESSION['timezone'] = $timezone;
+  date_default_timezone_set($timezone);
 
-// Ambil informasi sistem
-$resource = $API->comm("/system/resource/print")[0];
-$syshealth = $API->comm("/system/health/print")[0];
-$routerboard = $API->comm("/system/routerboard/print")[0];
+// get system resource MikroTik
+  $getresource = $API->comm("/system/resource/print");
+  $resource = $getresource[0];
+// get sys health info
+  $syshealth = $API->comm("/system/health/print")[0];
 
-// Fungsi unit 'item/items'
-function unitLabel($count) {
-    return $count == 1 ? 'item' : 'items';
-}
+// get routeboard info
+  $getrouterboard = $API->comm("/system/routerboard/print");
+  $routerboard = $getrouterboard[0];
+/*
+// move hotspot log to disk *
+  $getlogging = $API->comm("/system/logging/print", array("?prefix" => "->", ));
+  $logging = $getlogging[0];
+  if ($logging['prefix'] == "->") {
+  } else {
+    $API->comm("/system/logging/add", array("action" => "disk", "prefix" => "->", "topics" => "hotspot,info,debug", ));
+  }
 
-// Hotspot
-$countAllUsers = $API->comm("/ip/hotspot/user/print", ["count-only" => ""]);
-$uunit = unitLabel($countAllUsers);
+// get hotspot log
+  $getlog = $API->comm("/log/print", array("?topics" => "hotspot,info,debug", ));
+  $log = array_reverse($getlog);
+  $THotspotLog = count($getlog);
+  $getlog = $API->comm("/log/print", array("?topics" => "pppoe,ppp,info,account", ));
+  $log = array_reverse($getlog);
+  $THotspotLog = count($getlog);*/
 
-$countHotspotActive = $API->comm("/ip/hotspot/active/print", ["count-only" => ""]);
-$hunit = unitLabel($countHotspotActive);
+  $getlog = $API->comm("/log/print", array("?topics" => "pppoe,ppp,info,account"));
+$log = array_reverse($getlog); // Urutkan dari yang terbaru
 
-// PPP
-$pppProfiles = $API->comm("/ppp/profile/print");
-$countProfiles = count($pppProfiles);
-
-$pppSecrets = $API->comm("/ppp/secret/print");
-$countSecrets = count($pppSecrets);
-
-$pppActive = $API->comm("/ppp/active/print");
-$countPPPActive = count($pppActive);
-
-// Hitung PPP yang di-disable
-$countPPPInactive = 0;
-foreach ($pppSecrets as $secret) {
-    if (!empty($secret['disabled']) && $secret['disabled'] !== 'false') {
-        $countPPPInactive++;
-    }
-}
-
-// Log PPP login/logout
 $ppp_logs = [];
-$logResult = $API->comm("/log/print", ["?topics" => "ppp"]);
-foreach ($logResult as $log) {
-    if (strpos($log['message'], 'logged in') !== false) {
-        $status = 'connect';
-    } elseif (strpos($log['message'], 'logged out') !== false) {
-        $status = 'disconnect';
-    } else {
-        continue;
-    }
 
-    preg_match("/user (\S+)(?: \(([\d.]+)\))?/", $log['message'], $match);
-    $user = $match[1] ?? 'unknown';
-    $ip = $match[2] ?? '-';
+foreach ($log as $entry) {
+    $message = $entry['message'] ?? '';
+    $time = $entry['time'] ?? '';
+    $user = '-';
+    $ip = '-';
+    $status = '-';
+
+    // Ekstrak username dan IP dari pesan jika ada
+    if (preg_match('/user\s(\S+)\son\s(\d+\.\d+\.\d+\.\d+)/', $message, $matches)) {
+        $user = $matches[1];
+        $ip = $matches[2];
+        $status = (stripos($message, 'logged in') !== false || stripos($message, 'connected') !== false) ? 'connect' : 'disconnect';
+    } elseif (preg_match('/user\s(\S+)\s.*(disconnected|logged out)/i', $message, $matches)) {
+        $user = $matches[1];
+        $status = 'disconnect';
+    }
 
     $ppp_logs[] = [
-        'time' => $log['time'],
+        'time' => $time,
         'user' => $user,
         'ip' => $ip,
-        'message' => $log['message'],
-        'status' => $status
+        'status' => $status,
+        'message' => $message
     ];
 }
 
-// Selling report
-$thisD = str_pad(date("d"), 2, "0", STR_PAD_LEFT);
-$thisM = strtolower(date("M"));
-$thisY = date("Y");
+// Ambil seluruh ppp secrets
+$pppSecrets = $API->comm("/ppp/secret/print");
 
-$idHr = "{$thisM}/{$thisD}/{$thisY}";
-$idBl = "{$thisM}{$thisY}";
-
-$getSRHr = $API->comm("/system/script/print", ["?source" => $idHr]);
-$getSRBl = $API->comm("/system/script/print", ["?owner" => $idBl]);
-
-$tHr = 0;
-foreach ($getSRHr as $script) {
-    $parts = explode("-|-", $script['name']);
-    $tHr += isset($parts[3]) ? (int)$parts[3] : 0;
+// Hitung user yang disabled
+$countpppinactive = 0;
+foreach ($pppSecrets as $secret) {
+    if (isset($secret['disabled']) && $secret['disabled'] === 'true') {
+        $countpppinactive++;
+    }
 }
 
-$tBl = 0;
-foreach ($getSRBl as $script) {
-    $parts = explode("-|-", $script['name']);
-    $tBl += isset($parts[3]) ? (int)$parts[3] : 0;
-}
 
-// Livereport display toggle
-$logh = ($livereport == "disable") ? "457px" : "350px";
-$lreport = ($livereport == "disable") ? "style='display:none;'" : "style='display:block;'";
+// get & counting hotspot users
+  $countallusers = $API->comm("/ip/hotspot/user/print", array("count-only" => ""));
+  if ($countallusers < 2) {
+    $uunit = "item";
+  } elseif ($countallusers > 1) {
+    $uunit = "items";
+  }
+
+// get & counting hotspot active
+  $counthotspotactive = $API->comm("/ip/hotspot/active/print", array("count-only" => ""));
+  if ($counthotspotactive < 2) {
+    $hunit = "item";
+  } elseif ($counthotspotactive > 1) {
+    $hunit = "items";
+  }
+
+  if ($livereport == "disable") {
+    $logh = "457px";
+    $lreport = "style='display:none;'";
+  } else {
+    $logh = "350px";
+    $lreport = "style='display:block;'";
+  }
+  
+   // get & counting hotspot users
+    $countprofiles = count($API->comm("/ppp/profile/print"));
+    if ($countprofiles < 2) {
+        $uunit = "item";
+    } elseif ($countprofiles > 1) {
+        $uunit = "items";
+    }
+
+    // get & counting ppp secrets
+    $countsecrets = count($API->comm("/ppp/secret/print"));
+    if ($countsecrets < 2) {
+        $hunit = "item";
+    } elseif ($countsecrets > 1) {
+        $hunit = "items";
+    }
+
+    // get & counting ppp secrets
+    $countpppactive = count($API->comm("/ppp/active/print"));
+    if ($countpppactive < 2) {
+        $hunit = "item";
+    } elseif ($countpppactive > 1) {
+        $hunit = "items";
+    }
+
+// get selling report
+    $thisD = date("d");
+    $thisM = strtolower(date("M"));
+    $thisY = date("Y");
+
+    if (strlen($thisD) == 1) {
+      $thisD = "0" . $thisD;
+    } else {
+      $thisD = $thisD;
+    }
+
+    $idhr = $thisM . "/" . $thisD . "/" . $thisY;
+    $idbl = $thisM . $thisY;
+
+    $getSRHr = $API->comm("/system/script/print", array(
+      "?source" => "$idhr",
+    ));
+    $TotalRHr = count($getSRHr);
+    $getSRBl = $API->comm("/system/script/print", array(
+      "?owner" => "$idbl",
+    ));
+    $TotalRBl = count($getSRBl);
+
+    for ($i = 0; $i < $TotalRHr; $i++) {
+
+      $tHr += explode("-|-", $getSRHr[$i]['name'])[3];
+
+    }
+    for ($i = 0; $i < $TotalRBl; $i++) {
+
+      $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
+    }
+  }
+
 ?>
-
     
 <div id="reloadHome">
 
@@ -266,17 +346,17 @@ $lreport = ($livereport == "disable") ? "style='display:none;'" : "style='displa
                   </div>
 
                   <!-- Tambahan untuk PPP Disconnect -->
-                  <div class="col-3 col-box-6">
-                    <div class="box bg-secondary bmh-75">
-                        <a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
-                            <h1><?= $countpppinactive; ?>
-                                <span style="font-size: 15px;"><?= $uunit; ?></span>
-                            </h1>
-                            <div>
-                                <i class="fa fa-user-times"></i> PPP Disable
-                            </div>
-                        </a>
-                    </div>
+                 <div class="col-3 col-box-6">
+                  <div class="box bg-secondary bmh-75">
+                    <a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
+                      <h1><?= $countpppinactive; ?>
+                        <span style="font-size: 15px;"><?= $uunit ?? ''; ?></span>
+                      </h1>
+                      <div>
+                        <i class="fa fa-user-times"></i> PPP Disable
+                      </div>
+                    </a>
+                  </div>
                 </div>
               </div>
           </div>
@@ -460,45 +540,45 @@ $lreport = ($livereport == "disable") ? "style='display:none;'" : "style='displa
               </div>
             </div>
             <div id="r_2" class="row mt-3">
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="fa fa-plug"></i> PPP Log</h3>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
-          <table class="table table-sm table-bordered table-hover">
-            <thead>
-              <tr>
-                <th><?= $_time ?></th>
-                <th><?= $_users ?> (IP)</th>
-                <th>Status</th>
-                <th><?= $_messages ?></th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (empty($ppp_logs)): ?>
-              <tr>
-                <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
-              </tr>
-              <?php else: ?>
-              <?php foreach ($ppp_logs as $log): 
-                $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
-              ?>
-              <tr>
-                <td><?= $log['time'] ?></td>
-                <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
-                <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
-                <td><?= $log['message'] ?></td>
-              </tr>
-              <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fa fa-plug"></i> PPP Log</h3>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
+        <table class="table table-sm table-bordered table-hover">
+          <thead>
+            <tr>
+              <th><?= $_time ?></th>
+              <th><?= $_users ?> (IP)</th>
+              <th>Status</th>
+              <th><?= $_messages ?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (empty($ppp_logs)): ?>
+            <tr>
+              <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
+            </tr>
+            <?php else: ?>
+            <?php foreach ($ppp_logs as $log): 
+              $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
+            ?>
+            <tr>
+              <td><?= $log['time'] ?></td>
+              <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
+              <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
+              <td><?= $log['message'] ?></td>
+            </tr>
+            <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
+
 
 </div>
 </div>
