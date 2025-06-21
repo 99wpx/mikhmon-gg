@@ -104,13 +104,14 @@ if (!isset($_SESSION["mikhmon"])) {
         $hunit = "items";
     }
 
-    // Hitung user yang tidak aktif (yang ada di secret tapi tidak di active)
+// Hitung user yang di-disable pada PPP Secret
 $countpppinactive = 0;
 foreach ($pppSecrets as $secret) {
-    if (!in_array($secret['name'], $activeNames)) {
+    if (isset($secret['disabled']) && $secret['disabled'] === 'true') {
         $countpppinactive++;
     }
 }
+
 
 $ppp_logs = [];
 
@@ -304,7 +305,7 @@ foreach ($log_result as $log) {
           </div>
           <div class="card-body">
               <div class="row">
-                  <div class="col-4 col-box-6">
+                  <div class="col-3 col-box-6">
                       <div class="box bg-blue bmh-75">
                           <a onclick="cancelPage()" href="./?ppp=active&session=<?= $session; ?>">
                               <h1><?= $countpppactive; ?>
@@ -316,7 +317,7 @@ foreach ($log_result as $log) {
                           </a>
                       </div>
                   </div>
-                  <div class="col-4 col-box-6">
+                  <div class="col-3 col-box-6">
                       <div class="box bg-green bmh-75">
                           <a onclick="cancelPage()" href="./?ppp=profiles&session=<?= $session; ?>">
                               <h1><?= $countprofiles; ?>
@@ -328,7 +329,7 @@ foreach ($log_result as $log) {
                           </a>
                       </div>
                   </div>
-                  <div class="col-4 col-box-6">
+                  <div class="col-3 col-box-6">
                       <div class="box bg-yellow bmh-75">
                           <a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
                               <h1><?= $countsecrets; ?>
@@ -342,14 +343,14 @@ foreach ($log_result as $log) {
                   </div>
 
                   <!-- Tambahan untuk PPP Disconnect -->
-                  <div class="col-4 col-box-6">
+                  <div class="col-3 col-box-6">
                     <div class="box bg-secondary bmh-75">
-                        <a onclick="cancelPage()" href="./?ppp=inactive&session=<?= $session; ?>">
+                        <a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
                             <h1><?= $countpppinactive; ?>
                                 <span style="font-size: 15px;"><?= $uunit; ?></span>
                             </h1>
                             <div>
-                                <i class="fa fa-user-times"></i> PPP Disconnected
+                                <i class="fa fa-user-times"></i> PPP Disable
                             </div>
                         </a>
                     </div>
@@ -535,41 +536,44 @@ foreach ($log_result as $log) {
               </div>
               </div>
             </div>
-            <!-- PPP Connect/Disconnect Table -->
-<div class="card mt-3">
-  <div class="card-header">
-    <h3><i class="fa fa-plug"></i> PPP Log</h3>
-  </div>
-  <div class="card-body">
-    <div class="table-responsive" style="font-size:12px;">
-      <table class="table table-sm table-bordered table-hover">
-        <thead>
-          <tr>
-            <th><?= $_time ?></th>
-            <th><?= $_users ?> (IP)</th>
-            <th>Status</th>
-            <th><?= $_messages ?></th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if (empty($ppp_logs)): ?>
-            <tr>
-              <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
-            </tr>
-          <?php else: ?>
-            <?php foreach ($ppp_logs as $log): 
-              $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
-            ?>
-            <tr>
-              <td><?= $log['time'] ?></td>
-              <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
-              <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
-              <td><?= $log['message'] ?></td>
-            </tr>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </tbody>
-      </table>
+            <div id="r_2" class="row mt-3">
+  <div class="col-12"> <!-- atau bisa col-4 jika ingin 1 baris 3 kolom -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fa fa-plug"></i> PPP Log</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
+          <table class="table table-sm table-bordered table-hover">
+            <thead>
+              <tr>
+                <th><?= $_time ?></th>
+                <th><?= $_users ?> (IP)</th>
+                <th>Status</th>
+                <th><?= $_messages ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (empty($ppp_logs)): ?>
+              <tr>
+                <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
+              </tr>
+              <?php else: ?>
+              <?php foreach ($ppp_logs as $log): 
+                $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
+              ?>
+              <tr>
+                <td><?= $log['time'] ?></td>
+                <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
+                <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
+                <td><?= $log['message'] ?></td>
+              </tr>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
