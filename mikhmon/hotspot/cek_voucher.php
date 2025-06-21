@@ -2,143 +2,132 @@
 session_start();
 error_reporting(0);
 
-if (!isset($_SESSION["mikhmon"])) {
-	header("Location:../admin.php?id=login");
-	exit;
+// Block direct access and ensure user is logged in
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__) || !isset($_SESSION['mikhmon'])) {
+    header("Location: ../admin.php?id=login");
+    exit;
 }
-
-$session = $_GET['session'];
-$serveractive = $_GET['server'];
 
 include('../include/config.php');
 include('../include/readcfg.php');
-include('../include/lang.php');
-include('../lang/'.$langid.'.php');
 include_once('../lib/routeros_api.class.php');
-include_once('../lib/formatbytesbites.php');
+
+function secondsToTime($seconds) {
+    $dtF = new DateTime('@0');
+    $dtT = new DateTime("@$seconds");
+    return $dtF->diff($dtT)->format('%a days, %h hours, %i minutes');
+}
+
+function parseTimeToSeconds($timeStr) {
+    $time = 0;
+    if (preg_match_all('/(\d+)([dhms])/', $timeStr, $matches)) {
+        foreach ($matches[1] as $i => $val) {
+            switch ($matches[2][$i]) {
+                case 'd': $time += $val * 86400; break;
+                case 'h': $time += $val * 3600; break;
+                case 'm': $time += $val * 60; break;
+                case 's': $time += $val; break;
+            }
+        }
+    }
+    return $time;
+}
 
 $API = new RouterosAPI();
 $API->debug = false;
-$API->connect($iphost, $userhost, decrypt($passwdhost));
-
-if ($serveractive != "") {
-	$gethotspotactive = $API->comm("/ip/hotspot/active/print", ["?server" => $serveractive]);
-	$TotalReg = count($gethotspotactive);
-	$counthotspotactive = $API->comm("/ip/hotspot/active/print", [
-		"count-only" => "", "?server" => $serveractive
-	]);
-} else {
-	$gethotspotactive = $API->comm("/ip/hotspot/active/print");
-	$TotalReg = count($gethotspotactive);
-	$counthotspotactive = $API->comm("/ip/hotspot/active/print", ["count-only" => ""]);
-}
-
-// Ambil semua user hotspot dan index berdasarkan nama untuk akses cepat profile
-$allUsers = $API->comm("/ip/hotspot/user/print");
-$userProfiles = [];
-foreach ($allUsers as $usr) {
-    $userProfiles[$usr['name']] = $usr['profile'] ?? '-';
-}
+$session = htmlspecialchars($_GET['session'] ?? '');
 ?>
-
-<!-- DataTables CSS & JS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 <div class="row">
-<div id="reloadHotspotActive">
-<div class="col-12">
-	<div class="card">
-		<div class="card-header">
-    		<h3><i class="fa fa-wifi"></i> <?= $_hotspot_active ?> 
-				<?php
-				if ($serveractive != "") {
-					echo $serveractive . " ";
-				}
-				echo ($counthotspotactive < 2) ? "$counthotspotactive item" : "$counthotspotactive items";
-				if ($serveractive != "") {
-					echo " | <a href='./?hotspot=active&session=" . $session . "'><i class='fa fa-search'></i> Show all</a>";
-				}
-				?>
-			</h3>
-        </div>
-        <div class="card-body overflow">
-<table id="tFilter" class="table table-bordered table-hover text-nowrap">
-  <thead>
-  <tr>
-    <th></th>
-    <th>Server</th>
-    <th>User</th>
-    <th>Address</th>
-    <th>Mac Address</th>
-    <th>Profile</th> <!-- Kolom baru -->
-    <th class="text-right">Uptime</th>
-    <th class="text-right">Bytes In</th>
-    <th class="text-right">Bytes Out</th>
-    <th class="text-right">Time Left</th>
-    <th>Login By</th>
-    <th><?= $_comment ?></th>
-  </tr>
-  </thead>
-  <tbody>
+  <div class="col-8">
+    <div class="card box-bordered">
+      <div class="card-header">
+        <h3><i class="fa fa-search"></i> Check Voucher Status</h3>
+      </div>
+      <div class="card-body">
+        <!-- Form -->
+        <form method="get" action="">
+          <input type="hidden" name="hotspot" value="cek-voucher">
+          <input type="hidden" name="session" value="<?= $session ?>">
+          <div class="form-group">
+            <label>Enter Voucher Username</label>
+            <input type="text" name="user" class="form-control" placeholder="Example: wifi123" required>
+          </div>
+          <button type="submit" class="btn bg-primary">
+            <i class="fa fa-search"></i> Check Status
+          </button>
+        </form>
+
+        <hr>
+
 <?php
-for ($i = 0; $i < $TotalReg; $i++) {
-	$hotspotactive = $gethotspotactive[$i];
-	$id = $hotspotactive['.id'];
-	$server = $hotspotactive['server'];
-	$user = $hotspotactive['user'];
-	$address = $hotspotactive['address'];
-	$mac = $hotspotactive['mac-address'];
-	$uptime = formatDTM($hotspotactive['uptime']);
-	$usesstime = formatDTM($hotspotactive['session-time-left']);
-	$bytesi = formatBytes($hotspotactive['bytes-in'], 2);
-	$byteso = formatBytes($hotspotactive['bytes-out'], 2);
-	$loginby = $hotspotactive['login-by'];
-	$comment = $hotspotactive['comment'];
-	$profile = $userProfiles[$user] ?? '-';
+if (!empty($_GET['user'])):
+    $username = htmlspecialchars($_GET['user']);
 
-	$uriprocess = "'./?remove-user-active=" . $id . "&session=" . $session . "'";
-	echo "<tr>";
-	echo "<td style='text-align:center;'><span class='pointer' title='Remove $user' onclick=loadpage($uriprocess)><i class='fa fa-minus-square text-danger'></i></span></td>";
-	echo "<td><a title='filter $server' href='./?hotspot=active&server=$server&session=$session'><i class='fa fa-server'></i> $server</a></td>";
-	echo "<td><a title='Open User $user' href=./?hotspot-user=$user&session=$session><i class='fa fa-edit'></i> $user</a></td>";
-	echo "<td>$address</td>";
-	echo "<td>$mac</td>";
-	echo "<td>$profile</td>"; // Profile baru
-	echo "<td style='text-align:right;'>$uptime</td>";
-	echo "<td style='text-align:right;'>$bytesi</td>";
-	echo "<td style='text-align:right;'>$byteso</td>";
-	echo "<td style='text-align:right;'>$usesstime</td>";
-	echo "<td>$loginby</td>";
-	echo "<td>$comment</td>";
-	echo "</tr>";
-}
+    if ($API->connect($iphost, $userhost, decrypt($passwdhost))):
+        // Get user data
+        $API->write('/ip/hotspot/user/print', false);
+        $API->write('?name=' . $username);
+        $userData = $API->read();
+
+        // Get active session data
+        $API->write('/ip/hotspot/active/print', false);
+        $API->write('?user=' . $username);
+        $activeData = $API->read();
+
+        $API->disconnect();
+
+        if (!empty($userData)):
+            $user = $userData[0];
+            $uptimeUsed = parseTimeToSeconds($user['uptime'] ?? '0s');
+            $uptimeLimit = parseTimeToSeconds($user['limit-uptime'] ?? '0s');
+            $remaining = ($uptimeLimit > 0) ? max(0, $uptimeLimit - $uptimeUsed) : null;
+
+            echo "<table class='table table-bordered'>";
+            echo "<tr><th>Username</th><td><b>{$user['name']}</b></td></tr>";
+            echo "<tr><th>Password</th><td>" . ($user['password'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Profile</th><td>" . ($user['profile'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Used Uptime</th><td>" . ($user['uptime'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Uptime Limit</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Remaining Time</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Status</th><td>" . ($user['disabled'] === 'true' ? "<span class='text-danger'>Disabled</span>" : "<span class='text-success'>Active</span>") . "</td></tr>";
+            echo "<tr><th>Data Limit</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Bytes In</th><td>" . ($active['bytes-in'] ?? '0') . " Bytes</td></tr>";
+            echo "<tr><th>Bytes Out</th><td>" . ($active['bytes-out'] ?? '0') . " Bytes</td></tr>";
+            echo "<tr><th>Comment</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
+
+            if (!empty($activeData)):
+                $active = $activeData[0];
+                echo "<tr><th colspan='2' class='table-active text-center'>Status: <span class='text-success'>Logged In</span></th></tr>";
+                echo "<tr><th>Active Uptime</th><td>" . ($active['uptime'] ?? '-') . "</td></tr>";
+                echo "<tr><th>IP Address</th><td>" . ($active['address'] ?? '-') . "</td></tr>";
+                echo "<tr><th>MAC Address</th><td>" . ($active['mac-address'] ?? '-') . "</td></tr>";
+            else:
+                echo "<tr><th colspan='2' class='table-active text-center'>Status: <span class='text-muted'>Not Active / Logged Out</span></th></tr>";
+            endif;
+
+            echo "</table>";
+        else:
+            echo "<div class='alert alert-danger'>Voucher <b>$username</b> not found.</div>";
+        endif;
+    else:
+        echo "<div class='alert alert-danger'>Failed to connect to MikroTik.</div>";
+    endif;
+endif;
 ?>
-  </tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
+      </div>
+    </div>
+  </div>
 
-<!-- Inisialisasi DataTables -->
-<script>
-$(document).ready(function() {
-    $('#tFilter').DataTable({
-        columnDefs: [
-            { orderable: false, searchable: false, targets: 0 }
-        ],
-        responsive: true,
-        pageLength: 25,
-        language: {
-            search: "Pencarian:",
-            lengthMenu: "Tampilkan _MENU_ entri",
-            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            infoFiltered: "(disaring dari _MAX_ total entri)",
-            zeroRecords: "Tidak ada data ditemukan"
-        }
-    });
-});
-</script>
+  <div class="col-4">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fa fa-info-circle"></i> Information</h3>
+      </div>
+      <div class="card-body">
+        <p>Enter the <b>voucher username</b> such as <code>wifi123</code> to check its usage status.</p>
+        <p><b>Displayed:</b> Active status, uptime, data limit, IP & MAC address if logged in.</p>
+      </div>
+    </div>
+  </div>
+</div>
