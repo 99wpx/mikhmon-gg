@@ -7,7 +7,7 @@ if (!isset($_SESSION["mikhmon"])) {
     exit;
 }
 
-require('../system/routeros_api.class.php');
+require('../lib/routeros_api.class.php');
 $API = new RouterosAPI();
 
 $host = $_SESSION["host"];
