@@ -104,13 +104,13 @@ if (!isset($_SESSION["mikhmon"])) {
         $hunit = "items";
     }
 
-// Hitung user yang di-disable pada PPP Secret
 $countpppinactive = 0;
 foreach ($pppSecrets as $secret) {
-    if (isset($secret['disabled']) && $secret['disabled'] === 'true') {
+    if (!empty($secret['disabled']) && $secret['disabled'] != 'false') {
         $countpppinactive++;
     }
 }
+
 
 
 $ppp_logs = [];
