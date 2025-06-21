@@ -1,8 +1,8 @@
 <?php
+
 include('../include/config.php');
 include('../include/mikrotik.php');
-
-// Proteksi agar tidak bisa diakses langsung
+// Proteksi: jangan izinkan akses langsung
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
   header("Location: ../index.php");
   exit;
@@ -28,13 +28,6 @@ function parseTimeToSeconds($timeStr) {
   }
   return $time;
 }
-
-function formatBytes($bytes, $precision = 2) {
-  if ($bytes <= 0) return "0 B";
-  $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  $power = floor(log($bytes, 1024));
-  return round($bytes / pow(1024, $power), $precision) . ' ' . $units[$power];
-}
 ?>
 
 <div class="row">
@@ -58,7 +51,7 @@ function formatBytes($bytes, $precision = 2) {
 <?php
 if ($API->connect($host, $user, $pass)) {
   if (!empty($_GET['user'])) {
-    $username = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $_GET['user']); // sanitize username
+    $username = $_GET['user'];
 
     $API->write('/ip/hotspot/user/print', false);
     $API->write('?name=' . $username);
@@ -71,16 +64,16 @@ if ($API->connect($host, $user, $pass)) {
       $remaining = ($uptimeLimit > 0) ? max(0, $uptimeLimit - $uptimeUsed) : null;
 
       echo "<table class='table table-bordered'>";
-      echo "<tr><th>Username</th><td><b>" . htmlspecialchars($user['name']) . "</b></td></tr>";
-      echo "<tr><th>Password</th><td>" . htmlspecialchars($user['password'] ?? '-') . "</td></tr>";
-      echo "<tr><th>Profile</th><td>" . htmlspecialchars($user['profile'] ?? '-') . "</td></tr>";
-      echo "<tr><th>Uptime Digunakan</th><td>" . htmlspecialchars($user['uptime'] ?? '-') . "</td></tr>";
-      echo "<tr><th>Limit Uptime</th><td>" . htmlspecialchars($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
+      echo "<tr><th>Username</th><td><b>{$user['name']}</b></td></tr>";
+      echo "<tr><th>Password</th><td>" . ($user['password'] ?? '-') . "</td></tr>";
+      echo "<tr><th>Profile</th><td>" . ($user['profile'] ?? '-') . "</td></tr>";
+      echo "<tr><th>Uptime Digunakan</th><td>" . ($user['uptime'] ?? '-') . "</td></tr>";
+      echo "<tr><th>Limit Uptime</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
       echo "<tr><th>Sisa Waktu</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
       echo "<tr><th>Status</th><td>" . ($user['disabled'] == 'true' ? "<span class='text-danger'>Nonaktif</span>" : "<span class='text-success'>Aktif</span>") . "</td></tr>";
-      echo "<tr><th>Data Terpakai</th><td>" . formatBytes($user['bytes-total'] ?? 0) . "</td></tr>";
-      echo "<tr><th>Limit Data</th><td>" . (isset($user['limit-bytes-total']) ? formatBytes($user['limit-bytes-total']) : 'Unlimited') . "</td></tr>";
-      echo "<tr><th>Komentar</th><td>" . htmlspecialchars($user['comment'] ?? '-') . "</td></tr>";
+      echo "<tr><th>Data Terpakai</th><td>" . ($user['bytes-total'] ?? '0') . " Bytes</td></tr>";
+      echo "<tr><th>Limit Data</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
+      echo "<tr><th>Komentar</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
       echo "</table>";
     } else {
       echo "<div class='alert alert-danger'>Voucher <b>" . htmlspecialchars($username) . "</b> tidak ditemukan.</div>";
