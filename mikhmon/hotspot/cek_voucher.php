@@ -7,12 +7,8 @@ if (!isset($_SESSION["mikhmon"])) {
     exit;
 }
 
-require('../lib/routeros_api.class.php');
-$API = new RouterosAPI();
-
-$host = $_SESSION["host"];
-$user = $_SESSION["user"];
-$pass = $_SESSION["pass"];
+include('../include/config.php');
+include('../include/mikrotik.php');
 
 function secondsToTime($seconds) {
     $dtF = new DateTime('@0');
@@ -34,6 +30,15 @@ function parseTimeToSeconds($timeStr) {
     }
     return $time;
 }
+
+echo '
+<form method="get">
+  <label>Masukkan Username Voucher:</label><br>
+  <input type="text" name="user" required>
+  <button type="submit">Cek Status</button>
+</form>
+<hr>
+';
 
 if ($API->connect($host, $user, $pass)) {
     if (isset($_GET['user'])) {
@@ -57,15 +62,13 @@ if ($API->connect($host, $user, $pass)) {
             echo "Uptime Digunakan: " . ($user['uptime'] ?? '-') . "<br>";
             echo "Limit Uptime: " . ($user['limit-uptime'] ?? 'Unlimited') . "<br>";
             echo "Sisa Waktu: " . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "<br>";
-            echo "Status: " . ($user['disabled'] == 'true' ? '<span style=\"color:red\">Nonaktif</span>' : '<span style=\"color:green\">Aktif</span>') . "<br>";
+            echo "Status: " . ($user['disabled'] == 'true' ? '<span style="color:red">Nonaktif</span>' : '<span style="color:green">Aktif</span>') . "<br>";
             echo "Data Terpakai (Bytes): " . ($user['bytes-total'] ?? '0') . "<br>";
             echo "Limit Data: " . ($user['limit-bytes-total'] ?? 'Unlimited') . "<br>";
             echo "Komentar: " . ($user['comment'] ?? '-') . "<br>";
         } else {
             echo "<span style='color:red'>Voucher tidak ditemukan.</span>";
         }
-    } else {
-        echo "Masukkan username voucher.";
     }
 
     $API->disconnect();

@@ -335,9 +335,7 @@ include('./info.php');
   <!--vouchers-->
   <a href="./?hotspot=users-by-profile&session=<?= $session; ?>" class="menu <?= $susersbp; ?>"> <i class="fa fa-ticket"></i> <?= $_vouchers ?> </a>
   <!-- cek status voucher -->
-<a href="hotspot/cek_voucher.php" class="menu">
-  <i class="fa fa-search"></i> Cek Status Voucher
-</a>
+<a href="./hotspot/cek_voucher.php?session=<?= $session; ?>" class="menu"> <i class="fa fa-search"></i> Cek Voucher </a>
    <!--log-->
   <div class="dropdown-btn <?= $log; ?>"><i class=" fa fa-align-justify"></i> <?= $_log ?>
     <i class="fa fa-caret-down"></i>
