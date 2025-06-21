@@ -1,25 +1,29 @@
 <?php
 session_start();
-error_reporting(0);
 
-// Block direct access and ensure user is logged in
+// Tampilkan error saat debugging (nonaktifkan di produksi)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Cegah akses langsung dan pastikan sudah login
 if (basename($_SERVER['PHP_SELF']) == basename(__FILE__) || !isset($_SESSION['mikhmon'])) {
     header("Location: ../admin.php?id=login");
     exit;
 }
 
+// Load file konfigurasi
 include('../include/config.php');
 include('../include/readcfg.php');
 include_once('../lib/routeros_api.class.php');
 
-// Convert seconds to human-readable time
+// Fungsi konversi detik ke format waktu
 function secondsToTime($seconds) {
     $dtF = new DateTime('@0');
     $dtT = new DateTime("@$seconds");
-    return $dtF->diff($dtT)->format('%a days, %h hours, %i minutes');
+    return $dtF->diff($dtT)->format('%a hari, %h jam, %i menit');
 }
 
-// Convert Mikrotik time format to seconds
+// Ubah format uptime Mikrotik ke detik
 function parseTimeToSeconds($timeStr) {
     $time = 0;
     if (preg_match_all('/(\d+)([dhms])/', $timeStr, $matches)) {
@@ -35,18 +39,19 @@ function parseTimeToSeconds($timeStr) {
     return $time;
 }
 
-// Format bytes to readable units
+// Format byte menjadi B, KB, MB, GB
 function formatBytes($bytes, $precision = 2) {
-    if ($bytes <= 0) return '0 Bytes';
-    $units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if ($bytes <= 0) return '0 B';
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
     $pow = floor(log($bytes, 1024));
     $pow = min($pow, count($units) - 1);
-    $bytes /= pow(1024, $pow);
-    return round($bytes, $precision) . ' ' . $units[$pow];
+    return round($bytes / pow(1024, $pow), $precision) . ' ' . $units[$pow];
 }
 
+// Inisialisasi API Mikrotik
 $API = new RouterosAPI();
 $API->debug = false;
+
 $session = htmlspecialchars($_GET['session'] ?? '');
 ?>
 
@@ -54,19 +59,19 @@ $session = htmlspecialchars($_GET['session'] ?? '');
   <div class="col-8">
     <div class="card box-bordered">
       <div class="card-header">
-        <h3><i class="fa fa-search"></i> Check Voucher Status</h3>
+        <h3><i class="fa fa-search"></i> Cek Status Voucher</h3>
       </div>
       <div class="card-body">
 
-        <!-- Form -->
+        <!-- Form Pencarian -->
         <form method="get" action="">
           <input type="hidden" name="hotspot" value="cek-voucher">
           <input type="hidden" name="session" value="<?= $session ?>">
           <div class="form-group">
-            <label>Enter Voucher Username</label>
-            <input type="text" name="user" class="form-control" placeholder="e.g., wifi123" required>
+            <label>Masukkan Username Voucher</label>
+            <input type="text" name="user" class="form-control" placeholder="Contoh: wifi123" required>
           </div>
-          <button type="submit" class="btn bg-primary"><i class="fa fa-search"></i> Check Status</button>
+          <button type="submit" class="btn bg-primary"><i class="fa fa-search"></i> Cek Status</button>
         </form>
 
         <hr>
@@ -76,12 +81,12 @@ if (!empty($_GET['user'])):
     $username = htmlspecialchars($_GET['user']);
 
     if ($API->connect($iphost, $userhost, decrypt($passwdhost))):
-        // Fetch user data
+        // Ambil data user hotspot
         $API->write('/ip/hotspot/user/print', false);
         $API->write('?name=' . $username);
         $userData = $API->read();
 
-        // Fetch active session data
+        // Ambil data sesi aktif
         $API->write('/ip/hotspot/active/print', false);
         $API->write('?user=' . $username);
         $activeData = $API->read();
@@ -97,43 +102,33 @@ if (!empty($_GET['user'])):
             echo "<table class='table table-bordered'>";
             echo "<tr><th>Username</th><td><b>{$user['name']}</b></td></tr>";
             echo "<tr><th>Password</th><td>" . ($user['password'] ?? '-') . "</td></tr>";
-            echo "<tr><th>Profile</th><td>" . ($user['profile'] ?? '-') . "</td></tr>";
-            echo "<tr><th>Used Uptime</th><td>" . ($user['uptime'] ?? '-') . "</td></tr>";
-            echo "<tr><th>Uptime Limit</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
-            echo "<tr><th>Remaining Time</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
-
-            // Account status
-            echo "<tr><th>Status</th><td>" .
-                ($user['disabled'] === 'true'
-                ? "<span class='badge badge-danger'><i class='fa fa-times-circle'></i> Disabled</span>"
-                : "<span class='badge badge-success'><i class='fa fa-check-circle'></i> Active</span>") . "</td></tr>";
-
-            echo "<tr><th>Data Used</th><td>" . formatBytes($user['bytes-total'] ?? 0) . "</td></tr>";
-            echo "<tr><th>Data Limit</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
-            echo "<tr><th>Comment</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Profil</th><td>" . ($user['profile'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Uptime Digunakan</th><td>" . ($user['uptime'] ?? '-') . "</td></tr>";
+            echo "<tr><th>Limit Uptime</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Sisa Waktu</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Status</th><td>" . ($user['disabled'] === 'true' ? "<span class='text-danger'>Nonaktif</span>" : "<span class='text-success'>Aktif</span>") . "</td></tr>";
+            echo "<tr><th>Data Terpakai</th><td>" . formatBytes($user['bytes-total'] ?? 0) . "</td></tr>";
+            echo "<tr><th>Limit Data</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Komentar</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
 
             if (!empty($activeData)):
                 $active = $activeData[0];
-                echo "<tr><th colspan='2' class='table-info text-center'>
-                      <i class='fa fa-signal'></i> Status: 
-                      <span class='badge badge-success'>Logged In</span></th></tr>";
-                echo "<tr><th>Active Uptime</th><td>" . ($active['uptime'] ?? '-') . "</td></tr>";
+                echo "<tr><th colspan='2' class='table-active text-center'>Status: <span class='text-success'>Sedang Login</span></th></tr>";
+                echo "<tr><th>Uptime Aktif</th><td>" . ($active['uptime'] ?? '-') . "</td></tr>";
                 echo "<tr><th>Bytes In</th><td>" . formatBytes($active['bytes-in'] ?? 0) . "</td></tr>";
                 echo "<tr><th>Bytes Out</th><td>" . formatBytes($active['bytes-out'] ?? 0) . "</td></tr>";
                 echo "<tr><th>IP Address</th><td>" . ($active['address'] ?? '-') . "</td></tr>";
                 echo "<tr><th>MAC Address</th><td>" . ($active['mac-address'] ?? '-') . "</td></tr>";
             else:
-                echo "<tr><th colspan='2' class='table-secondary text-center'>
-                      <i class='fa fa-power-off'></i> Status: 
-                      <span class='badge badge-secondary'>Offline / Logged Out</span></th></tr>";
+                echo "<tr><th colspan='2' class='table-secondary text-center'>Status: <span class='text-muted'>Tidak Aktif / Logout</span></th></tr>";
             endif;
 
             echo "</table>";
         else:
-            echo "<div class='alert alert-danger'>Voucher <b>$username</b> not found.</div>";
+            echo "<div class='alert alert-danger'>Voucher <b>$username</b> tidak ditemukan.</div>";
         endif;
     else:
-        echo "<div class='alert alert-danger'>Failed to connect to MikroTik device.</div>";
+        echo "<div class='alert alert-danger'>Gagal terhubung ke Mikrotik. Silakan periksa IP / login Mikrotik.</div>";
     endif;
 endif;
 ?>
@@ -144,11 +139,11 @@ endif;
   <div class="col-4">
     <div class="card">
       <div class="card-header">
-        <h3><i class="fa fa-info-circle"></i> Info</h3>
+        <h3><i class="fa fa-info-circle"></i> Keterangan</h3>
       </div>
       <div class="card-body">
-        <p>Enter the <b>voucher username</b> like <code>wifi123</code> to check its usage status.</p>
-        <p><b>Displayed info:</b> active status, uptime, data usage, IP & MAC address when online.</p>
+        <p>Masukkan <b>username voucher</b> seperti <code>wifi123</code> untuk melihat status penggunaannya.</p>
+        <p><b>Ditampilkan:</b> Status aktif, uptime, data digunakan, IP & MAC address saat login.</p>
       </div>
     </div>
   </div>
