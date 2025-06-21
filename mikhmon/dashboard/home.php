@@ -112,7 +112,6 @@ if (!isset($_SESSION["mikhmon"])) {
         }
     }
 
-    
 /*
 // get selling report
     $thisD = date("d");
