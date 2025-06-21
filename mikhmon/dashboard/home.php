@@ -146,7 +146,7 @@ foreach ($pppSecrets as $secret) {
     } elseif ($countpppactive > 1) {
         $hunit = "items";
     }
-/*
+
 // get selling report
     $thisD = date("d");
     $thisM = strtolower(date("M"));
@@ -180,7 +180,7 @@ foreach ($pppSecrets as $secret) {
       $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
     }
   }
-}*/
+
 ?>
     
 <div id="reloadHome">
@@ -587,6 +587,5 @@ foreach ($pppSecrets as $secret) {
                 </div>
               </div>
             </div>
-        </div>
    </div>
 </div>
