@@ -146,7 +146,7 @@ foreach ($pppSecrets as $secret) {
     } elseif ($countpppactive > 1) {
         $hunit = "items";
     }
-
+/*
 // get selling report
     $thisD = date("d");
     $thisM = strtolower(date("M"));
@@ -180,7 +180,7 @@ foreach ($pppSecrets as $secret) {
       $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
     }
   }
-
+}*/
 ?>
     
 <div id="reloadHome">
@@ -512,72 +512,82 @@ foreach ($pppSecrets as $secret) {
               </div>
             </div>
             </div>
-            <div id="r_3" class="row">
-            <div class="card">
-              <div class="card-header">
-                <h3><a onclick="cancelPage()" href="./?hotspot=log&session=<?= $session; ?>" title="Open Hotspot Log" ><i class="fa fa-align-justify"></i> <?= $_hotspot_log ?></a></h3></div>
-                  <div class="card-body">
-                    <div style="padding: 5px; height: <?= $logh; ?> ;" class="mr-t-10 overflow">
-                      <table class="table table-sm table-bordered table-hover" style="font-size: 12px; td.padding:2px;">
-                        <thead>
-                          <tr>
-                            <th><?= $_time ?></th>
-                            <th><?= $_users ?> (IP)</th>
-                            <th><?= $_messages ?></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td colspan="3" class="text-center">
-                            <div id="loader" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></div>
-                            </td>
-                          </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              </div>
-            </div>
-            <div id="r_2" class="row mt-3">
-  <div class="card">
-    <div class="card-header">
-      <h3><i class="fa fa-plug"></i> PPP Log</h3>
+            <div class="row mt-3">
+  <!-- HOTSPOT LOG -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h3>
+          <a onclick="cancelPage()" href="./?hotspot=log&session=<?= $session; ?>" title="Open Hotspot Log">
+            <i class="fa fa-align-justify"></i> <?= $_hotspot_log ?>
+          </a>
+        </h3>
+      </div>
+      <div class="card-body">
+        <div style="padding: 5px; height: <?= $logh; ?>;" class="mr-t-10 overflow">
+          <table class="table table-sm table-bordered table-hover" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th><?= $_time ?></th>
+                <th><?= $_users ?> (IP)</th>
+                <th><?= $_messages ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="3" class="text-center">
+                  <div id="loader"><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
-        <table class="table table-sm table-bordered table-hover">
-          <thead>
-            <tr>
-              <th><?= $_time ?></th>
-              <th><?= $_users ?> (IP)</th>
-              <th>Status</th>
-              <th><?= $_messages ?></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php if (empty($ppp_logs)): ?>
-            <tr>
-              <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
-            </tr>
-            <?php else: ?>
-            <?php foreach ($ppp_logs as $log): 
-              $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
-            ?>
-            <tr>
-              <td><?= $log['time'] ?></td>
-              <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
-              <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
-              <td><?= $log['message'] ?></td>
-            </tr>
-            <?php endforeach; ?>
-            <?php endif; ?>
-          </tbody>
-        </table>
+  </div>
+
+  <!-- PPP LOG -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <h3><i class="fa fa-plug"></i> PPP Log</h3>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
+          <table class="table table-sm table-bordered table-hover">
+            <thead>
+              <tr>
+                <th><?= $_time ?></th>
+                <th><?= $_users ?> (IP)</th>
+                <th>Status</th>
+                <th><?= $_messages ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (empty($ppp_logs)): ?>
+              <tr>
+                <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
+              </tr>
+              <?php else: ?>
+              <?php foreach ($ppp_logs as $log): 
+                $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
+              ?>
+              <tr>
+                <td><?= $log['time'] ?></td>
+                <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
+                <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
+                <td><?= $log['message'] ?></td>
+              </tr>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
 
 
 </div>
