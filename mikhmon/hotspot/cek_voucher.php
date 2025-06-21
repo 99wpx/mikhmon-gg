@@ -30,18 +30,29 @@ function parseTimeToSeconds($timeStr) {
     }
     return $time;
 }
+?>
 
-echo '
-<form method="get">
-  <label>Masukkan Username Voucher:</label><br>
-  <input type="text" name="user" required>
-  <button type="submit">Cek Status</button>
-</form>
-<hr>
-';
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fa fa-search"></i> Cek Status Voucher</h3>
+      </div>
+      <div class="card-body">
+        <form method="get" action="">
+          <input type="hidden" name="hotspot" value="cek-voucher">
+          <input type="hidden" name="session" value="<?= $session ?>">
+          <div class="form-group">
+            <label>Masukkan Username Voucher</label>
+            <input type="text" name="user" class="form-control" placeholder="Contoh: wifi123" required>
+          </div>
+          <button type="submit" class="btn bg-primary"><i class="fa fa-search"></i> Cek Status</button>
+        </form>
+        <hr>
 
+<?php
 if ($API->connect($host, $user, $pass)) {
-    if (isset($_GET['user'])) {
+    if (!empty($_GET['user'])) {
         $username = $_GET['user'];
 
         $API->write('/ip/hotspot/user/print', false);
@@ -50,29 +61,32 @@ if ($API->connect($host, $user, $pass)) {
 
         if (!empty($result)) {
             $user = $result[0];
-
             $uptimeUsed = isset($user['uptime']) ? parseTimeToSeconds($user['uptime']) : 0;
             $uptimeLimit = isset($user['limit-uptime']) ? parseTimeToSeconds($user['limit-uptime']) : 0;
             $remaining = ($uptimeLimit > 0) ? max(0, $uptimeLimit - $uptimeUsed) : null;
 
-            echo "<h3>Status Voucher</h3>";
-            echo "User: <b>" . $user['name'] . "</b><br>";
-            echo "Password: " . ($user['password'] ?? '-') . "<br>";
-            echo "Paket / Jenis Profile: <b>" . ($user['profile'] ?? '-') . "</b><br>";
-            echo "Uptime Digunakan: " . ($user['uptime'] ?? '-') . "<br>";
-            echo "Limit Uptime: " . ($user['limit-uptime'] ?? 'Unlimited') . "<br>";
-            echo "Sisa Waktu: " . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "<br>";
-            echo "Status: " . ($user['disabled'] == 'true' ? '<span style="color:red">Nonaktif</span>' : '<span style="color:green">Aktif</span>') . "<br>";
-            echo "Data Terpakai (Bytes): " . ($user['bytes-total'] ?? '0') . "<br>";
-            echo "Limit Data: " . ($user['limit-bytes-total'] ?? 'Unlimited') . "<br>";
-            echo "Komentar: " . ($user['comment'] ?? '-') . "<br>";
+            echo "<table class='table table-bordered'>";
+            echo "<tr><th>Username</th><td><b>{$user['name']}</b></td></tr>";
+            echo "<tr><th>Password</th><td>{$user['password']}</td></tr>";
+            echo "<tr><th>Profile</th><td>{$user['profile']}</td></tr>";
+            echo "<tr><th>Uptime Digunakan</th><td>{$user['uptime']}</td></tr>";
+            echo "<tr><th>Limit Uptime</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Sisa Waktu</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Status</th><td>" . ($user['disabled'] == 'true' ? "<span class='text-danger'>Nonaktif</span>" : "<span class='text-success'>Aktif</span>") . "</td></tr>";
+            echo "<tr><th>Data Terpakai</th><td>" . ($user['bytes-total'] ?? '0') . " Bytes</td></tr>";
+            echo "<tr><th>Limit Data</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
+            echo "<tr><th>Komentar</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
+            echo "</table>";
         } else {
-            echo "<span style='color:red'>Voucher tidak ditemukan.</span>";
+            echo "<div class='alert alert-danger'>Voucher <b>$username</b> tidak ditemukan.</div>";
         }
     }
-
     $API->disconnect();
 } else {
-    echo "Koneksi ke Mikrotik gagal.";
+    echo "<div class='alert alert-danger'>Koneksi ke Mikrotik gagal.</div>";
 }
 ?>
+      </div>
+    </div>
+  </div>
+</div>
