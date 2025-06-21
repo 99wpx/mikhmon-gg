@@ -33,6 +33,15 @@ function parseTimeToSeconds($timeStr) {
     return $time;
 }
 
+function formatBytes($bytes, $precision = 2) {
+    $units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if ($bytes == 0) return '0 Bytes';
+    $pow = floor(log($bytes, 1024));
+    $pow = min($pow, count($units) - 1);
+    $bytes /= (1 << (10 * $pow));
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
+
 $API = new RouterosAPI();
 $API->debug = false;
 $session = htmlspecialchars($_GET['session'] ?? '');
@@ -64,12 +73,10 @@ if (!empty($_GET['user'])):
     $username = htmlspecialchars($_GET['user']);
 
     if ($API->connect($iphost, $userhost, decrypt($passwdhost))):
-        // Ambil data user
         $API->write('/ip/hotspot/user/print', false);
         $API->write('?name=' . $username);
         $userData = $API->read();
 
-        // Ambil data active session
         $API->write('/ip/hotspot/active/print', false);
         $API->write('?user=' . $username);
         $activeData = $API->read();
@@ -82,6 +89,16 @@ if (!empty($_GET['user'])):
             $uptimeLimit = parseTimeToSeconds($user['limit-uptime'] ?? '0s');
             $remaining = ($uptimeLimit > 0) ? max(0, $uptimeLimit - $uptimeUsed) : null;
 
+            // Tentukan Bytes In/Out
+            if (!empty($activeData)) {
+                $active = $activeData[0];
+                $bytesIn = formatBytes($active['bytes-in'] ?? 0);
+                $bytesOut = formatBytes($active['bytes-out'] ?? 0);
+            } else {
+                $bytesIn = formatBytes($user['bytes-in'] ?? ($user['bytes-total'] ?? 0));
+                $bytesOut = formatBytes($user['bytes-out'] ?? 0);
+            }
+
             echo "<table class='table table-bordered'>";
             echo "<tr><th>Username</th><td><b>{$user['name']}</b></td></tr>";
             echo "<tr><th>Password</th><td>" . ($user['password'] ?? '-') . "</td></tr>";
@@ -89,24 +106,24 @@ if (!empty($_GET['user'])):
             echo "<tr><th>Uptime Digunakan</th><td>" . ($user['uptime'] ?? '-') . "</td></tr>";
             echo "<tr><th>Limit Uptime</th><td>" . ($user['limit-uptime'] ?? 'Unlimited') . "</td></tr>";
             echo "<tr><th>Sisa Waktu</th><td>" . ($remaining !== null ? secondsToTime($remaining) : 'Unlimited') . "</td></tr>";
-            echo "<tr><th>Status</th><td>" . ($user['disabled'] === 'true' ? "<span class='text-danger'>Nonaktif</span>" : "<span class='text-success'>Aktif</span>") . "</td></tr>";
-            echo "<tr><th>Data Terpakai</th><td>" . ($user['bytes-total'] ?? '0') . " Bytes</td></tr>";
-            echo "<tr><th>Limit Data</th><td>" . ($user['limit-bytes-total'] ?? 'Unlimited') . "</td></tr>";
+
+            $disabled = ($user['disabled'] === 'true');
+            echo "<tr><th>Status</th><td>" . ($disabled ? "<span class='text-danger'>❌ Nonaktif</span>" : "<span class='text-success'>✅ Aktif</span>") . "</td></tr>";
             echo "<tr><th>Komentar</th><td>" . ($user['comment'] ?? '-') . "</td></tr>";
 
-            if (!empty($activeData)):
-                $active = $activeData[0];
-                echo "<tr><th colspan='2' class='table-active text-center'>Status: <span class='text-success'>Sedang Login</span></th></tr>";
+            if (!empty($activeData)) {
+                echo "<tr class='table-success text-center'><th colspan='2'>Status: <span class='text-success'>✅ Login</span></th></tr>";
                 echo "<tr><th>Uptime Aktif</th><td>" . ($active['uptime'] ?? '-') . "</td></tr>";
-                echo "<tr><th>Bytes In</th><td>" . ($active['bytes-in'] ?? '0') . " Bytes</td></tr>";
-                echo "<tr><th>Bytes Out</th><td>" . ($active['bytes-out'] ?? '0') . " Bytes</td></tr>";
                 echo "<tr><th>IP Address</th><td>" . ($active['address'] ?? '-') . "</td></tr>";
                 echo "<tr><th>MAC Address</th><td>" . ($active['mac-address'] ?? '-') . "</td></tr>";
-            else:
-                echo "<tr><th colspan='2' class='table-active text-center'>Status: <span class='text-muted'>Tidak Aktif / Logout</span></th></tr>";
-            endif;
+            } else {
+                echo "<tr class='table-warning text-center'><th colspan='2'>Status: <span class='text-muted'>❌ Tidak Aktif / Logout</span></th></tr>";
+            }
 
+            echo "<tr><th>Bytes In</th><td>$bytesIn</td></tr>";
+            echo "<tr><th>Bytes Out</th><td>$bytesOut</td></tr>";
             echo "</table>";
+
         else:
             echo "<div class='alert alert-danger'>Voucher <b>$username</b> tidak ditemukan.</div>";
         endif;
@@ -126,7 +143,7 @@ endif;
       </div>
       <div class="card-body">
         <p>Masukkan <b>username voucher</b> seperti <code>wifi123</code> untuk melihat status penggunaannya.</p>
-        <p><b>Ditampilkan:</b> Status aktif, uptime, data digunakan, IP & MAC address saat login.</p>
+        <p><b>Ditampilkan:</b> Status aktif, uptime, sisa waktu, Bytes In/Out, dan IP saat login.</p>
       </div>
     </div>
   </div>
