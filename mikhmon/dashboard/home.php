@@ -498,32 +498,6 @@ if (!isset($_SESSION["mikhmon"])) {
                 </div>
               </div>
               </div>
-              <div id="r_3" class="row">
-              <div class="card">
-                <div class="card-header">
-                  <h3><a onclick="cancelPage()" href="./?hotspot=log&session=<?= $session; ?>" title="Open Hotspot Log" ><i class="fa fa-align-justify"></i> <?= $_hotspot_log ?></a></h3></div>
-                    <div class="card-body">
-                      <div style="padding: 5px; height: <?= $logh; ?> ;" class="mr-t-10 overflow">
-                        <table class="table table-sm table-bordered table-hover" style="font-size: 12px; td.padding:2px;">
-                          <thead>
-                            <tr>
-                              <th><?= $_time ?></th>
-                              <th><?= $_users ?> (IP)</th>
-                              <th><?= $_messages ?></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td colspan="3" class="text-center">
-                              <div id="loader" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></div>
-                              </td>
-                            </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
   </div>
 </div>
