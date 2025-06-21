@@ -112,7 +112,7 @@ if (!isset($_SESSION["mikhmon"])) {
         }
     }
 
-/*
+
 // get selling report
     $thisD = date("d");
     $thisM = strtolower(date("M"));
@@ -145,7 +145,6 @@ if (!isset($_SESSION["mikhmon"])) {
 
       $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
     }
-  }*/
 }
 ?>
     
@@ -320,7 +319,8 @@ if (!isset($_SESSION["mikhmon"])) {
 						</div>
 					</div>
 				</div>
-			</div>         
+			</div>           
+          </div>
            
 			<div class="card">
 				<div class="card-header">
