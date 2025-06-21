@@ -320,8 +320,7 @@ if (!isset($_SESSION["mikhmon"])) {
 						</div>
 					</div>
 				</div>
-			</div>           
-          </div>
+			</div>         
            
 			<div class="card">
 				<div class="card-header">
