@@ -104,6 +104,10 @@ if (!isset($_SESSION["mikhmon"])) {
         $hunit = "items";
     }
 
+// ambil semua PPP secrets
+$pppSecrets = $API->comm("/ppp/secret/print");
+
+// hitung yang di-disable
 $countpppinactive = 0;
 foreach ($pppSecrets as $secret) {
     if (!empty($secret['disabled']) && $secret['disabled'] != 'false') {
@@ -143,7 +147,7 @@ foreach ($log_result as $log) {
     ];
 }
 
-/*
+
 // get selling report
     $thisD = date("d");
     $thisM = strtolower(date("M"));
@@ -176,7 +180,7 @@ foreach ($log_result as $log) {
 
       $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
     }
-  }*/
+  }
 }
 ?>
     
@@ -537,7 +541,6 @@ foreach ($log_result as $log) {
               </div>
             </div>
             <div id="r_2" class="row mt-3">
-  <div class="col-12"> <!-- atau bisa col-4 jika ingin 1 baris 3 kolom -->
     <div class="card">
       <div class="card-header">
         <h3><i class="fa fa-plug"></i> PPP Log</h3>
