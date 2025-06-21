@@ -298,6 +298,11 @@ elseif ($removeexpiredhotspotuser != "") {
     include_once('./process/disablehotspotuser.php');
   }
 
+  elseif ($hotspot == "cek-voucher") {
+    include_once('./hotspot/cek_voucher.php');
+}
+
+
 // user profile
   elseif ($hotspot == "user-profiles") {
     include_once('./hotspot/userprofile.php');
