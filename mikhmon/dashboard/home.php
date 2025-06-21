@@ -112,32 +112,7 @@ if (!isset($_SESSION["mikhmon"])) {
         }
     }
 
-    // --- PPP LOG ---
-    $getPPPLog = $API->comm("/log/print", array("?topics" => "pppoe,ppp,info,account"));
-    $ppp_log = array_reverse($getPPPLog);
-    $ppp_logs = [];
-    foreach ($ppp_log as $entry) {
-        $message = $entry['message'] ?? '';
-        $time = $entry['time'] ?? '';
-        $user = '-';
-        $ip = '-';
-        $status = '-';
-        if (preg_match('/user\s(\S+)\son\s(\d+\.\d+\.\d+\.\d+)/', $message, $matches)) {
-            $user = $matches[1];
-            $ip = $matches[2];
-            $status = (stripos($message, 'logged in') !== false || stripos($message, 'connected') !== false) ? 'connect' : 'disconnect';
-        } elseif (preg_match('/user\s(\S+)\s.*(disconnected|logged out)/i', $message, $matches)) {
-            $user = $matches[1];
-            $status = 'disconnect';
-        }
-        $ppp_logs[] = [
-            'time' => $time,
-            'user' => $user,
-            'ip' => $ip,
-            'status' => $status,
-            'message' => $message
-        ];
-    }
+  
 /*
 // get selling report
     $thisD = date("d");
@@ -178,7 +153,7 @@ if (!isset($_SESSION["mikhmon"])) {
 <div id="reloadHome">
 
     <div id="r_1" class="row">
-      <div class="col-4">
+      <div class="col-3">
         <div class="box bmh-75 box-bordered">
           <div class="box-group">
             <div class="box-group-icon"><i class="fa fa-calendar"></i></div>
@@ -196,7 +171,7 @@ if (!isset($_SESSION["mikhmon"])) {
             </div>
           </div>
         </div>
-      <div class="col-4">
+      <div class="col-3">
         <div class="box bmh-75 box-bordered">
           <div class="box-group">
           <div class="box-group-icon"><i class="fa fa-info-circle"></i></div>
@@ -212,24 +187,43 @@ if (!isset($_SESSION["mikhmon"])) {
             </div>
           </div>
         </div>
-    <div class="col-4">
-      <div class="box bmh-75 box-bordered">
-        <div class="box-group">
-          <div class="box-group-icon"><i class="fa fa-server"></i></div>
-              <div class="box-group-area">
-                <span >
-                    <?php
-                    echo $_cpu_load." : " . $resource['cpu-load'] . "%<br/>
-                    ".$_free_memory." : " . formatBytes($resource['free-memory'], 2) . "<br/>
-                    ".$_free_hdd." : " . formatBytes($resource['free-hdd-space'], 2)
-                    ?>
-                </span>
+      <div class="col-3">
+        <div class="box bmh-75 box-bordered">
+          <div class="box-group">
+            <div class="box-group-icon"><i class="fa fa-server"></i></div>
+                <div class="box-group-area">
+                  <span >
+                      <?php
+                      echo $_cpu_load." : " . $resource['cpu-load'] . "%<br/>
+                      ".$_free_memory." : " . formatBytes($resource['free-memory'], 2) . "<br/>
+                      ".$_free_hdd." : " . formatBytes($resource['free-hdd-space'], 2)
+                      ?>
+                  </span>
+                  </div>
                 </div>
               </div>
+            </div> 
+          </div>
+        <div class="col-3">
+          <div class="box bmh-75 box-bordered">
+            <div class="box-group">
+              <div class="box-group-icon"><i class="fa fa-money"></i></div>
+              <div class="box-group-area">
+                <?php 
+                if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']) {
+                  echo '<span>' . $_income . '<br>' .
+                      $_today . ' ' . $_SESSION[$session.'totalHr'] . ' vcr : ' . $currency . ' ' . $_SESSION[$session.'dincome'] . '<br>' .
+                      $_this_month . ' ' . $_SESSION[$session.'totalBl'] . ' vcr : ' . $currency . ' ' . $_SESSION[$session.'mincome'] .
+                      '</span>';
+                } else {
+                  echo '<div id="loader"><i class="fa fa-circle-o-notch fa-spin"></i> ' . $_processing . '</div>';
+                }
+                ?>
+              </div>
             </div>
-          </div> 
-      </div>
-
+          </div>
+        </div>
+        
         <div class="row">
           <div  class="col-8">
             <div id="r_2"class="row">
@@ -473,28 +467,7 @@ if (!isset($_SESSION["mikhmon"])) {
                   <div id="trafficMonitor"></div>
                 </div> 
               </div>
-            </div>  
-            <div class="col-4">
-            <div id="r_4" class="row">
-              <div <?= $lreport; ?> class="box bmh-75 box-bordered">
-                <div class="box-group">
-                  <div class="box-group-icon"><i class="fa fa-money"></i></div>
-                    <div class="box-group-area">
-                      <span >
-                        <div id="reloadLreport">
-                          <?php 
-                          if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']){
-                            echo $_income." <br/>" . "
-                          ".$_today." " . $_SESSION[$session.'totalHr'] . "vcr : " . $currency . " " . $_SESSION[$session.'dincome']. "<br/>
-                          ".$_this_month." " . $_SESSION[$session.'totalBl'] . "vcr : " . $currency . " " . $_SESSION[$session.'mincome']; 
-                          }else{
-                            echo "<div id='loader' ><i><span> <i class='fa fa-circle-o-notch fa-spin'></i> ". $_processing." </i></div>";
-                          }
-                          ?>                       
-                        </div>
-                    </span>
-                </div>
-              </div>
+            </div> 
             </div>
             </div>
             <div id="r_3" class="row">
@@ -526,36 +499,23 @@ if (!isset($_SESSION["mikhmon"])) {
               <div id="r_3" class="row">
               <div class="card">
                 <div class="card-header">
-                  <h3><i class="fa fa-plug"></i> PPP Log</h3>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive" style="font-size:12px; height: <?= $logh ?>; overflow-y:auto;">
-                    <table class="table table-sm table-bordered table-hover">
-                      <thead>
-                        <tr>
-                          <th><?= $_time ?></th>
-                          <th><?= $_users ?> (IP)</th>
-                          <th>Status</th>
-                          <th><?= $_messages ?></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if (empty($ppp_logs)): ?>
-                          <tr>
-                            <td colspan="4" class="text-center text-muted"><?= $_no_data ?? 'No log available' ?></td>
-                          </tr>
-                        <?php else: ?>
-                          <?php foreach ($ppp_logs as $log):
-                            $color = ($log['status'] === 'connect') ? 'text-success' : 'text-danger';
-                          ?>
+                  <h3><a onclick="cancelPage()" href="./?hotspot=log&session=<?= $session; ?>" title="Open Hotspot Log" ><i class="fa fa-align-justify"></i> <?= $_hotspot_log ?></a></h3></div>
+                    <div class="card-body">
+                      <div style="padding: 5px; height: <?= $logh; ?> ;" class="mr-t-10 overflow">
+                        <table class="table table-sm table-bordered table-hover" style="font-size: 12px; td.padding:2px;">
+                          <thead>
                             <tr>
-                              <td><?= $log['time'] ?></td>
-                              <td><?= $log['user'] ?> (<?= $log['ip'] ?>)</td>
-                              <td class="<?= $color ?>"><strong><?= ucfirst($log['status']) ?></strong></td>
-                              <td><?= $log['message'] ?></td>
+                              <th><?= $_time ?></th>
+                              <th><?= $_users ?> (IP)</th>
+                              <th><?= $_messages ?></th>
                             </tr>
-                          <?php endforeach; ?>
-                        <?php endif; ?>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td colspan="3" class="text-center">
+                              <div id="loader" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></div>
+                              </td>
+                            </tr>
                         </tbody>
                       </table>
                     </div>
