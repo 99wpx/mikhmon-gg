@@ -1,139 +1,66 @@
 <?php
-/*
- *  Copyright (C) 2018 Laksamadi Guko.
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 session_start();
-// hide all error
 error_reporting(0);
+
 if (!isset($_SESSION["mikhmon"])) {
-  header("Location:../admin.php?id=login");
-} else {
+    header("Location:../admin.php?id=login");
+    exit;
+}
 
+require_once('../lib/routeros_api.class.php'); // jika belum include
 
-// get MikroTik system clock
-  $getclock = $API->comm("/system/clock/print");
-  $clock = $getclock[0];
-  $timezone = $getclock[0]['time-zone-name'];
-  $_SESSION['timezone'] = $timezone;
-  date_default_timezone_set($timezone);
+// Ambil data waktu MikroTik
+$getClock = $API->comm("/system/clock/print")[0];
+date_default_timezone_set($getClock['time-zone-name']);
+$_SESSION['timezone'] = $getClock['time-zone-name'];
 
-// get system resource MikroTik
-  $getresource = $API->comm("/system/resource/print");
-  $resource = $getresource[0];
-// get sys health info
-  $syshealth = $API->comm("/system/health/print")[0];
+// Ambil informasi sistem
+$resource = $API->comm("/system/resource/print")[0];
+$syshealth = $API->comm("/system/health/print")[0];
+$routerboard = $API->comm("/system/routerboard/print")[0];
 
-// get routeboard info
-  $getrouterboard = $API->comm("/system/routerboard/print");
-  $routerboard = $getrouterboard[0];
-/*
-// move hotspot log to disk *
-  $getlogging = $API->comm("/system/logging/print", array("?prefix" => "->", ));
-  $logging = $getlogging[0];
-  if ($logging['prefix'] == "->") {
-  } else {
-    $API->comm("/system/logging/add", array("action" => "disk", "prefix" => "->", "topics" => "hotspot,info,debug", ));
-  }
+// Fungsi unit 'item/items'
+function unitLabel($count) {
+    return $count == 1 ? 'item' : 'items';
+}
 
-// get hotspot log
-  $getlog = $API->comm("/log/print", array("?topics" => "hotspot,info,debug", ));
-  $log = array_reverse($getlog);
-  $THotspotLog = count($getlog);
-  $getlog = $API->comm("/log/print", array("?topics" => "pppoe,ppp,info,account", ));
-  $log = array_reverse($getlog);
-  $THotspotLog = count($getlog);
-*/
-// get & counting hotspot users
-  $countallusers = $API->comm("/ip/hotspot/user/print", array("count-only" => ""));
-  if ($countallusers < 2) {
-    $uunit = "item";
-  } elseif ($countallusers > 1) {
-    $uunit = "items";
-  }
+// Hotspot
+$countAllUsers = $API->comm("/ip/hotspot/user/print", ["count-only" => ""]);
+$uunit = unitLabel($countAllUsers);
 
-// get & counting hotspot active
-  $counthotspotactive = $API->comm("/ip/hotspot/active/print", array("count-only" => ""));
-  if ($counthotspotactive < 2) {
-    $hunit = "item";
-  } elseif ($counthotspotactive > 1) {
-    $hunit = "items";
-  }
+$countHotspotActive = $API->comm("/ip/hotspot/active/print", ["count-only" => ""]);
+$hunit = unitLabel($countHotspotActive);
 
-  if ($livereport == "disable") {
-    $logh = "457px";
-    $lreport = "style='display:none;'";
-  } else {
-    $logh = "350px";
-    $lreport = "style='display:block;'";
-  }
-  
-   // get & counting hotspot users
-    $countprofiles = count($API->comm("/ppp/profile/print"));
-    if ($countprofiles < 2) {
-        $uunit = "item";
-    } elseif ($countprofiles > 1) {
-        $uunit = "items";
-    }
+// PPP
+$pppProfiles = $API->comm("/ppp/profile/print");
+$countProfiles = count($pppProfiles);
 
-    // get & counting ppp secrets
-    $countsecrets = count($API->comm("/ppp/secret/print"));
-    if ($countsecrets < 2) {
-        $hunit = "item";
-    } elseif ($countsecrets > 1) {
-        $hunit = "items";
-    }
-
-    // get & counting ppp secrets
-    $countpppactive = count($API->comm("/ppp/active/print"));
-    if ($countpppactive < 2) {
-        $hunit = "item";
-    } elseif ($countpppactive > 1) {
-        $hunit = "items";
-    }
-
-// ambil semua PPP secrets
 $pppSecrets = $API->comm("/ppp/secret/print");
+$countSecrets = count($pppSecrets);
 
-// hitung yang di-disable
-$countpppinactive = 0;
+$pppActive = $API->comm("/ppp/active/print");
+$countPPPActive = count($pppActive);
+
+// Hitung PPP yang di-disable
+$countPPPInactive = 0;
 foreach ($pppSecrets as $secret) {
-    if (!empty($secret['disabled']) && $secret['disabled'] != 'false') {
-        $countpppinactive++;
+    if (!empty($secret['disabled']) && $secret['disabled'] !== 'false') {
+        $countPPPInactive++;
     }
 }
 
-
-
+// Log PPP login/logout
 $ppp_logs = [];
-
-$log_result = $API->comm("/log/print", [
-    "?topics" => "ppp"
-]);
-
-foreach ($log_result as $log) {
-    // Cek apakah log relevan (logged in/out)
+$logResult = $API->comm("/log/print", ["?topics" => "ppp"]);
+foreach ($logResult as $log) {
     if (strpos($log['message'], 'logged in') !== false) {
         $status = 'connect';
     } elseif (strpos($log['message'], 'logged out') !== false) {
         $status = 'disconnect';
     } else {
-        continue; // skip log lain
+        continue;
     }
 
-    // Ekstrak user dan IP (jika format standar MikroTik)
     preg_match("/user (\S+)(?: \(([\d.]+)\))?/", $log['message'], $match);
     $user = $match[1] ?? 'unknown';
     $ip = $match[2] ?? '-';
@@ -147,42 +74,34 @@ foreach ($log_result as $log) {
     ];
 }
 
+// Selling report
+$thisD = str_pad(date("d"), 2, "0", STR_PAD_LEFT);
+$thisM = strtolower(date("M"));
+$thisY = date("Y");
 
-// get selling report
-    $thisD = date("d");
-    $thisM = strtolower(date("M"));
-    $thisY = date("Y");
+$idHr = "{$thisM}/{$thisD}/{$thisY}";
+$idBl = "{$thisM}{$thisY}";
 
-    if (strlen($thisD) == 1) {
-      $thisD = "0" . $thisD;
-    } else {
-      $thisD = $thisD;
-    }
+$getSRHr = $API->comm("/system/script/print", ["?source" => $idHr]);
+$getSRBl = $API->comm("/system/script/print", ["?owner" => $idBl]);
 
-    $idhr = $thisM . "/" . $thisD . "/" . $thisY;
-    $idbl = $thisM . $thisY;
-
-    $getSRHr = $API->comm("/system/script/print", array(
-      "?source" => "$idhr",
-    ));
-    $TotalRHr = count($getSRHr);
-    $getSRBl = $API->comm("/system/script/print", array(
-      "?owner" => "$idbl",
-    ));
-    $TotalRBl = count($getSRBl);
-
-    for ($i = 0; $i < $TotalRHr; $i++) {
-
-      $tHr += explode("-|-", $getSRHr[$i]['name'])[3];
-
-    }
-    for ($i = 0; $i < $TotalRBl; $i++) {
-
-      $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
-    }
-  }
+$tHr = 0;
+foreach ($getSRHr as $script) {
+    $parts = explode("-|-", $script['name']);
+    $tHr += isset($parts[3]) ? (int)$parts[3] : 0;
 }
+
+$tBl = 0;
+foreach ($getSRBl as $script) {
+    $parts = explode("-|-", $script['name']);
+    $tBl += isset($parts[3]) ? (int)$parts[3] : 0;
+}
+
+// Livereport display toggle
+$logh = ($livereport == "disable") ? "457px" : "350px";
+$lreport = ($livereport == "disable") ? "style='display:none;'" : "style='display:block;'";
 ?>
+
     
 <div id="reloadHome">
 
