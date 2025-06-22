@@ -112,47 +112,6 @@ if (!isset($_SESSION["mikhmon"])) {
             $countpppinactive++;
         }
     }
-
-    $lreport  = "style='display:none;'";
-    $logh     = "457px";
-    $tHr = $tBl = $TotalRHr = $TotalRBl = 0;
-
-    if ($livereport != "disable") {
-        $logh    = "350px";
-        $lreport = "style='display:block;'";
-
-    // Get current date identifiers
-    $thisD = str_pad(date("d"), 2, "0", STR_PAD_LEFT);
-    $thisM = strtolower(date("M"));
-    $thisY = date("Y");
-
-    $idhr = "$thisM/$thisD/$thisY";
-    $idbl = "$thisM$thisY";
-
-    $_SESSION["{$session}idhr"] = $idhr;
-
-    // Get report from MikroTik script based on 'owner'
-    $getSRBl = $API->comm("/system/script/print", [
-        "?owner" => $idbl,
-    ]);
-    $TotalRBl = count($getSRBl);
-    $_SESSION["{$session}totalBl"] = $TotalRBl;
-
-    foreach ($getSRBl as $row) {
-        $rowName = explode("-|-", $row['name']);
-        $dateId = $rowName[0];
-        $amount = isset($rowName[3]) ? (float)$rowName[3] : 0;
-
-        if ($dateId === $idhr) {
-            $tHr += $amount;
-            $TotalRHr += count((array)$row['source']); // Ensure compatibility with older API
-        }
-
-        $tBl += $amount;
-    }
-
-    $_SESSION["{$session}totalHr"] = $TotalRHr ?: "0";
-}
 /*
 // get selling report
     $thisD = date("d");
@@ -511,37 +470,6 @@ if (!isset($_SESSION["mikhmon"])) {
               </div>
             </div>  
             <div class="col-4">
-            <div id="r_4" class="row">
-              <div <?= $lreport; ?> class="box bmh-75 box-bordered">
-        <div class="box-group">
-            <div class="box-group-icon"><i class="fa fa-money"></i></div>
-            <div class="box-group-area">
-                <span>
-                    <div id="reloadLreport">
-                        <?php
-                        // Format income
-                        if (in_array($currency, $cekindo['indo'])) {
-                            $dincome = number_format($tHr, 0, ",", ".");
-                            $mincome = number_format($tBl, 0, ",", ".");
-                        } else {
-                            $dincome = number_format($tHr, 2);
-                            $mincome = number_format($tBl, 2);
-                        }
-
-                        $_SESSION["{$session}dincome"] = $dincome;
-                        $_SESSION["{$session}mincome"] = $mincome;
-
-                        // Display
-                        echo $_income . "<br/>"
-                           . $_today . " {$TotalRHr}vcr : {$currency} {$dincome}<br/>"
-                           . $_this_month . " {$TotalRBl}vcr : {$currency} {$mincome}";
-                        ?>
-                    </div>
-                    </span>
-                </div>
-              </div>
-            </div>
-            </div>
             <div id="r_3" class="row">
             <div class="card">
               <div class="card-header">

@@ -453,4 +453,11 @@ $(document).ready(function(){
 	</p>
   </div>
 </div>
+<!-- Today's and This Month's Sales Summary -->
+<div class="alert alert-info mb-3">
+    <b>Voucher Sales Summary:</b><br>
+    Today (<?= $today ?>): <b><?= $total_today ?></b> vouchers, Total: <b><?= $currency ?> <?= number_format($total_today_income, 0, ',', '.') ?></b><br>
+    This Month (<?= date("F Y") ?>): <b><?= $total_month ?></b> vouchers, Total: <b><?= $currency ?> <?= number_format($total_month_income, 0, ',', '.') ?></b>
 </div>
+</div>
+
