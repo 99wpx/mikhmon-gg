@@ -296,9 +296,13 @@ if (!isset($_SESSION["mikhmon"])) {
 						</div>
 						<div class="col-3 col-box-6">
 							<div class="box bg-green bmh-75">
-								<a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
-                      <h1><?= $countpppinactive; ?><span style="font-size: 15px;"><?= $uunit ?? ''; ?></span></h1>
-                      <div><i class="fa fa-user-times"></i> PPP Disable</div>
+								<a onclick="cancelPage()" href="./?ppp=profiles&session=<?= $session; ?>">
+									<h1><?= $countprofiles; ?>
+										<span style="font-size: 15px;"><?= $uunit; ?></span>
+									</h1>
+									<div>
+										<i class="fa fa-users"></i> <?= $_ppp_profiles ?>
+									</div>
 								</a>
 							</div>
 						</div>
