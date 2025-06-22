@@ -103,7 +103,8 @@ if (!isset($_SESSION["mikhmon"])) {
     } elseif ($countpppactive > 1) {
         $hunit = "items";
     }
-    // PPP Disable
+
+     // --- PPP SECRETS ---
     $pppSecrets = $API->comm("/ppp/secret/print");
     $countpppinactive = 0;
     foreach ($pppSecrets as $secret) {
@@ -111,8 +112,7 @@ if (!isset($_SESSION["mikhmon"])) {
             $countpppinactive++;
         }
     }
-
-
+/*
 // get selling report
     $thisD = date("d");
     $thisM = strtolower(date("M"));
@@ -145,6 +145,7 @@ if (!isset($_SESSION["mikhmon"])) {
 
       $tBl += explode("-|-", $getSRBl[$i]['name'])[3];
     }
+  }*/
 }
 ?>
     
@@ -273,7 +274,7 @@ if (!isset($_SESSION["mikhmon"])) {
 				</div>
 				<div class="card-body">
 					<div class="row">
-						<div class="col-3 col-box-6">
+						<div class="col-4 col-box-6">
 							<div class="box bg-blue bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=active&session=<?= $session; ?>">
 									<h1><?= $countpppactive; ?>
@@ -285,27 +286,27 @@ if (!isset($_SESSION["mikhmon"])) {
 								</a>
 							</div>
 						</div>
-            <div class="col-3 col-box-6">
-              <div class="box bg-secondary bmh-75">
-                    <a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
-                      <h1><?= $countpppinactive; ?><span style="font-size: 15px;"><?= $uunit ?? ''; ?></span></h1>
-                      <div><i class="fa fa-user-times"></i> PPP Disable</div>
-                    </a>
-                </div>
-              </div>
-						<div class="col-3 col-box-6">
-							<div class="box bg-green bmh-75">
-								<a onclick="cancelPage()" href="./?ppp=profiles&session=<?= $session; ?>">
-									<h1><?= $countprofiles; ?>
-										<span style="font-size: 15px;"><?= $uunit; ?></span>
+            <div class="col-4 col-box-6">
+							<div class="box bg-blue bmh-75">
+								<a onclick="cancelPage()" href="./?ppp=active&session=<?= $session; ?>">
+									<h1><?= $countpppactive; ?>
+										<span style="font-size: 15px;"><?= $hunit; ?></span>
 									</h1>
 									<div>
-										<i class="fa fa-users"></i> <?= $_ppp_profiles ?>
+										<i class="fa fa-laptop"></i> <?= $_ppp_active ?>
 									</div>
 								</a>
 							</div>
 						</div>
-						<div class="col-3 col-box-6">
+						<div class="col-4 col-box-6">
+							<div class="box bg-green bmh-75">
+								<a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
+                      <h1><?= $countpppinactive; ?><span style="font-size: 15px;"><?= $uunit ?? ''; ?></span></h1>
+                      <div><i class="fa fa-user-times"></i> PPP Disable</div>
+								</a>
+							</div>
+						</div>
+						<div class="col-4 col-box-6">
 							<div class="box bg-yellow bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
 									<h1><?= $countsecrets; ?>
@@ -497,5 +498,5 @@ if (!isset($_SESSION["mikhmon"])) {
               </div>
               </div>
             </div>
-  </div>
+</div>
 </div>
