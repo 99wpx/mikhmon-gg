@@ -100,7 +100,7 @@ include('../lang/'.$langid.'.php');
   }
 }
 ?>
-<!-- 
+
             <div id="r_4" class="row">
               <div <?= $lreport; ?> class="box bmh-75 box-bordered">
                 <div class="box-group">
@@ -130,4 +130,4 @@ include('../lang/'.$langid.'.php');
               </div>
             </div>
             </div>
-             -->
+             

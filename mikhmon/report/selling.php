@@ -121,29 +121,6 @@ if (!isset($_SESSION["mikhmon"])) {
 	}
 	
 }
-
-$today = date("Y-m-d"); // sesuaikan dengan format data
-$this_month = date("Y-m"); // untuk cek bulan
-$total_today = 0;
-$total_today_income = 0;
-$total_month = 0;
-$total_month_income = 0;
-
-for ($i = 0; $i < $TotalReg; $i++) {
-    $getname = explode("-|-", $getData[$i]['name']);
-    $tgl = $getname[0] ?? '';
-    $price = isset($getname[3]) && is_numeric($getname[3]) ? (int)$getname[3] : 0;
-    // Cek hari ini
-    if ($tgl == $today) {
-        $total_today++;
-        $total_today_income += $price;
-    }
-    // Cek bulan ini
-    if (substr($tgl, 0, 7) == $this_month) {
-        $total_month++;
-        $total_month_income += $price;
-    }
-}
 ?>
 		<script>
 			function downloadCSV(csv, filename) {
@@ -476,10 +453,4 @@ $(document).ready(function(){
 	</p>
   </div>
 </div>
-<!-- Today's and This Month's Sales Summary -->
-<div class="alert alert-info mb-3">
-    <b>Voucher Sales Summary:</b><br>
-    Today (<?= $today ?>): <b><?= $total_today ?></b> vouchers, Total: <b><?= $currency ?> <?= number_format($total_today_income, 0, ',', '.') ?></b><br>
-    This Month (<?= date("F Y") ?>): <b><?= $total_month ?></b> vouchers, Total: <b><?= $currency ?> <?= number_format($total_month_income, 0, ',', '.') ?></b>
 </div>
-
