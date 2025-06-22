@@ -201,7 +201,28 @@ if (!isset($_SESSION["mikhmon"])) {
                 </div>
               </div>
             </div>
-          </div> 
+          </div>
+    <div class="col-4">
+      <div class="box bmh-75 box-bordered">
+        <div class="box-group">
+          <div class="box-group-icon"><i class="fa fa-money"></i></div>
+          <div class="box-group-area">
+            <span>
+              <?php 
+              if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']) {
+                  echo $_income . " <br/>" .
+                      $_today . " " . $_SESSION[$session.'totalHr'] . " vcr : " . $currency . " " . $_SESSION[$session.'dincome'] . "<br/>" .
+                      $_this_month . " " . $_SESSION[$session.'totalBl'] . " vcr : " . $currency . " " . $_SESSION[$session.'mincome'];
+              } else {
+                  echo '<i><span><i class="fa fa-circle-o-notch fa-spin"></i> ' . $_processing . '</span></i>';
+              }
+              ?>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
       </div>
 
         <div class="row">
@@ -274,7 +295,7 @@ if (!isset($_SESSION["mikhmon"])) {
 				</div>
 				<div class="card-body">
 					<div class="row">
-						<div class="col-4 col-box-6">
+						<div class="col-3 col-box-6">
 							<div class="box bg-blue bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=active&session=<?= $session; ?>">
 									<h1><?= $countpppactive; ?>
@@ -286,7 +307,7 @@ if (!isset($_SESSION["mikhmon"])) {
 								</a>
 							</div>
 						</div>
-            <div class="col-4 col-box-6">
+            <div class="col-3 col-box-6">
 							<div class="box bg-blue bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=active&session=<?= $session; ?>">
 									<h1><?= $countpppactive; ?>
@@ -298,7 +319,7 @@ if (!isset($_SESSION["mikhmon"])) {
 								</a>
 							</div>
 						</div>
-						<div class="col-4 col-box-6">
+						<div class="col-3 col-box-6">
 							<div class="box bg-green bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
                       <h1><?= $countpppinactive; ?><span style="font-size: 15px;"><?= $uunit ?? ''; ?></span></h1>
@@ -306,7 +327,7 @@ if (!isset($_SESSION["mikhmon"])) {
 								</a>
 							</div>
 						</div>
-						<div class="col-4 col-box-6">
+						<div class="col-3 col-box-6">
 							<div class="box bg-yellow bmh-75">
 								<a onclick="cancelPage()" href="./?ppp=secrets&session=<?= $session; ?>">
 									<h1><?= $countsecrets; ?>
@@ -447,29 +468,6 @@ if (!isset($_SESSION["mikhmon"])) {
                   <div id="trafficMonitor"></div>
                 </div> 
               </div>
-            </div>  
-            <div class="col-4">
-            <div id="r_4" class="row">
-              <div <?= $lreport; ?> class="box bmh-75 box-bordered">
-                <div class="box-group">
-                  <div class="box-group-icon"><i class="fa fa-money"></i></div>
-                    <div class="box-group-area">
-                      <span >
-                        <div id="reloadLreport">
-                          <?php 
-                          if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']){
-                            echo $_income." <br/>" . "
-                          ".$_today." " . $_SESSION[$session.'totalHr'] . "vcr : " . $currency . " " . $_SESSION[$session.'dincome']. "<br/>
-                          ".$_this_month." " . $_SESSION[$session.'totalBl'] . "vcr : " . $currency . " " . $_SESSION[$session.'mincome']; 
-                          }else{
-                            echo "<div id='loader' ><i><span> <i class='fa fa-circle-o-notch fa-spin'></i> ". $_processing." </i></div>";
-                          }
-                          ?>                       
-                        </div>
-                    </span>
-                </div>
-              </div>
-            </div>
             </div>
             <div id="r_3" class="row">
             <div class="card">
