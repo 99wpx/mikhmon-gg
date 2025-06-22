@@ -202,27 +202,6 @@ if (!isset($_SESSION["mikhmon"])) {
               </div>
             </div>
           </div>
-    <div class="col-4">
-      <div class="box bmh-75 box-bordered">
-        <div class="box-group">
-          <div class="box-group-icon"><i class="fa fa-money"></i></div>
-          <div class="box-group-area">
-            <span>
-              <?php 
-              if ($_SESSION[$session.'sdate'] == $_SESSION[$session.'idhr']) {
-                  echo $_income . " <br/>" .
-                      $_today . " " . $_SESSION[$session.'totalHr'] . " vcr : " . $currency . " " . $_SESSION[$session.'dincome'] . "<br/>" .
-                      $_this_month . " " . $_SESSION[$session.'totalBl'] . " vcr : " . $currency . " " . $_SESSION[$session.'mincome'];
-              } else {
-                  echo '<i><span><i class="fa fa-circle-o-notch fa-spin"></i> ' . $_processing . '</span></i>';
-              }
-              ?>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
       </div>
 
         <div class="row">
