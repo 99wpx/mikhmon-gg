@@ -122,8 +122,8 @@ if (!isset($_SESSION["mikhmon"])) {
 	
 }
 
-$today = date("d-m-Y");
-$this_month = date("m-Y");
+$today = date("Y-m-d"); // sesuaikan dengan format data
+$this_month = date("Y-m"); // untuk cek bulan
 $total_today = 0;
 $total_today_income = 0;
 $total_month = 0;
@@ -131,17 +131,15 @@ $total_month_income = 0;
 
 for ($i = 0; $i < $TotalReg; $i++) {
     $getname = explode("-|-", $getData[$i]['name']);
-    // Pastikan format tanggal sesuai
     $tgl = $getname[0] ?? '';
-    $price = isset($getname[3]) ? (int)$getname[3] : 0;
-    // Format tanggal di data: d-m-Y
+    $price = isset($getname[3]) && is_numeric($getname[3]) ? (int)$getname[3] : 0;
+    // Cek hari ini
     if ($tgl == $today) {
         $total_today++;
         $total_today_income += $price;
     }
-    // Cek bulan
-    $exp = explode("-", $tgl);
-    if (count($exp) == 3 && $exp[1] . '-' . $exp[2] == $this_month) {
+    // Cek bulan ini
+    if (substr($tgl, 0, 7) == $this_month) {
         $total_month++;
         $total_month_income += $price;
     }
