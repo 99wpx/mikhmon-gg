@@ -1,6 +1,10 @@
 FROM alpine:3.19
 
 LABEL maintainer="99wpx"
+LABEL org.opencontainers.image.title="Mikhmon GG"
+LABEL org.opencontainers.image.description="Mikhmon Panel for Mikrotik - Multiarch Docker"
+LABEL org.opencontainers.image.authors="99wpx"
+LABEL org.opencontainers.image.licenses="MIT"
 
 # Install nginx, PHP 8.1, supervisor, etc.
 RUN apk update && apk add --no-cache \
@@ -30,5 +34,5 @@ RUN chown -R nginx:nginx /var/www/localhost/htdocs
 # Expose HTTP port
 EXPOSE 80
 
-# Start all services
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Start all services (tanpa path hardcode)
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
