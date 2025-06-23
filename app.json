@@ -1,0 +1,28 @@
+{
+  "title": "Mikhmon GG",
+  "description": "Web panel Mikhmon",
+  "services": [
+    {
+      "name": "mikhmon",
+      "image": "99wpx/mikhmon-gg:latest",
+      "restart": "unless-stopped",
+      "ports": [
+        {
+          "target": 80,
+          "published": 8888,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "host": {
+    "network_mode": "bridge"
+  },
+  "icon": "https://raw.githubusercontent.com/99wpx/mikhmon-gg/main/icon.png",
+  "web": {
+    "url": "http://$(hostname):8888"
+  },
+  "author": "99wpx",
+  "category": "Network",
+  "platform": "linux"
+}
